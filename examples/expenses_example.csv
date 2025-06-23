@@ -1,0 +1,42 @@
+Type,Reason,Date,Amount,Person
+Normal,Groceries,15/01/2025,85.50,Alice
+Normal,Utilities,16/01/2025,120.00,Bob
+Party,Party supplies,18/01/2025,45.75,Charlie
+Normal,Cleaning supplies,20/01/2025,32.25,Diana
+Alcohol,Wine for dinner,22/01/2025,28.90,Eve
+Normal,Internet bill,25/01/2025,89.00,Frank
+Party,Restaurant dinner,28/01/2025,156.80,Grace
+Normal,Groceries,30/01/2025,92.15,Henry
+Alcohol,Beer,02/02/2025,18.50,Alice
+Normal,Household items,05/02/2025,67.30,Bob
+Normal,Gas bill,08/02/2025,145.25,Charlie
+Special,Birthday cake,10/02/2025,55.00,Diana
+Normal,Laundry detergent,12/02/2025,24.80,Eve
+Party,Pizza night,14/02/2025,89.40,Frank
+Normal,Toilet paper,16/02/2025,18.75,Grace
+Alcohol,Cocktail ingredients,18/02/2025,42.30,Henry
+Normal,Kitchen supplies,20/02/2025,73.60,Alice
+Normal,Electricity bill,22/02/2025,198.50,Bob
+Party,Game night snacks,24/02/2025,34.90,Charlie
+Normal,Dish soap,26/02/2025,12.45,Diana
+Special,Movie tickets,28/02/2025,96.00,Eve
+Normal,Groceries,02/03/2025,112.30,Frank
+Alcohol,Wine tasting,04/03/2025,78.20,Grace
+Normal,Vacuum bags,06/03/2025,29.60,Henry
+Party,Karaoke night,08/03/2025,125.40,Alice
+Normal,Paper towels,10/03/2025,22.15,Bob
+Special,Concert tickets,12/03/2025,180.00,Charlie
+Normal,All-purpose cleaner,14/03/2025,15.80,Diana
+Alcohol,Craft beer,16/03/2025,35.70,Eve
+Normal,Groceries,18/03/2025,98.25,Frank
+Party,Brunch supplies,20/03/2025,67.90,Grace
+Normal,Light bulbs,22/03/2025,41.20,Henry
+Special,Spa day,24/03/2025,220.00,Alice
+Normal,Trash bags,26/03/2025,19.30,Bob
+Alcohol,Champagne celebration,28/03/2025,85.60,Charlie
+Normal,Hand soap,30/03/2025,13.75,Diana
+Party,BBQ supplies,01/04/2025,156.80,Eve
+Normal,Groceries,03/04/2025,87.40,Frank
+Special,Museum tickets,05/04/2025,72.00,Grace
+Normal,Fabric softener,07/04/2025,26.90,Henry
+Alcohol,Whiskey,09/04/2025,95.50,Alice

@@ -21,8 +21,8 @@ ui <- page_sidebar(
               accept = ".csv"),
     
     h4("Period Settings"),
-    dateInput("start_date", "Start Date", value = Sys.Date() - 90),
-    dateInput("end_date", "End Date", value = Sys.Date()),
+    dateInput("start_date", "Start Date", value = Sys.Date() - 90, format = "dd M yyyy"),
+    dateInput("end_date", "End Date", value = Sys.Date(), format = "dd M yyyy"),
     
     h4("People & Expense Types"),
     textAreaInput("people_list", "People Names (one per line)",

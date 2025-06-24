@@ -1,5 +1,5 @@
-Person,Type
-Bob,Alcohol
-Diana,Party
-Eve,Alcohol
-Frank,Special
+Person,Type,Percentage
+Bob,Alcohol,0.2
+Diana,Party,0.0
+Eve,Alcohol,0.5
+Frank,Special,0.0

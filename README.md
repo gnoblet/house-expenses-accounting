@@ -2,10 +2,22 @@
 
 A Shiny app to split and track shared house expenses fairly among housemates. Upload your expenses and (optionally) absences/exceptions as CSV files, set your period, and get a clear summary of who owes what. Features weighted calculations for absences, expense exclusions, Excel export, and tabbed analysis views.
 
+## Why
+
+Traditional expense splitting apps treat everyone equally, but real life isn't that simple. This app handles:
+
+- **Absences**: Someone away for a week shouldn't pay for groceries they didn't eat
+- **Partial participation**: Bob drinks less alcohol, so he pays 20% instead of full share
+- **Shared services**: Utilities and subscriptions are always split equally, regardless of absences
+- **Transparency**: See exactly how calculations work, filter by expense type
+- **Flexibility**: Upload your data, set custom rules, export professional reports
+- **Fairness**: Mathematical precision ensures everyone pays their true fair share
+
 ## Features
 
 - **Smart calculations**: Weighted splits based on presence and exceptions
-- **Expense exclusions**: People can opt out of specific expense types (e.g., alcohol)
+- **Shared expenses**: Some expense types always split equally (utilities, subscriptions)
+- **Expense exclusions**: People can participate at reduced rates in specific expense types (e.g., Bob pays 20% of alcohol)
 - **Dynamic date ranges**: Auto-adjusts to uploaded expense data
 - **Excel export**: Download all results as formatted spreadsheet
 - **Tabbed interface**: Final settlement, summaries, details, and filtered analysis

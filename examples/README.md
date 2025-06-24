@@ -27,11 +27,18 @@ This folder contains example files to help you understand the expected format fo
 - Categories used to group expenses
 - Types must exactly match those used in expenses file
 
-### 5. `exceptions_example.csv` (Optional)
-**Format:** CSV file with exactly 2 columns:
+### 5. `shared_expense_types_example.txt`
+**Format:** Plain text file with one expense type per line
+- Expense types that are always split equally among all people
+- Ignores absences, exceptions, and presence ratios (e.g., utilities, subscriptions)
+- Types must exactly match those used in expenses file
+
+### 6. `exceptions_example.csv` (Optional)
+**Format:** CSV file with exactly 3 columns:
 - **Person**: Name of person (must match your people list)
-- **Type**: Expense type they don't participate in (must match your expense types)
-- **Purpose**: Allows certain people to opt out of specific expense categories (e.g., Bob doesn't pay for alcohol)
+- **Type**: Expense type they participate in at reduced rate (must match your expense types)
+- **Percentage**: Participation rate (0.0 = no participation, 0.5 = half participation, etc.)
+- **Purpose**: Allows certain people to pay reduced shares of specific expense categories (e.g., Bob pays 20% of alcohol since he drinks less)
 
 ## 💡 Tips
 
@@ -39,8 +46,9 @@ This folder contains example files to help you understand the expected format fo
 2. **Date Format**: Always use DD/MM/YYYY format for dates
 3. **Numbers**: Use decimal point (.) for amounts, not comma (,)
 4. **Consistency**: Make sure all names and types match exactly across files
-5. **Exceptions**: Use exceptions file to exclude people from specific expense types
-6. **Absences**: If you don't have an absences file, everyone is assumed present for all days
+5. **Exceptions**: Use exceptions file to set reduced participation rates for specific expense types (0.0-0.99)
+6. **Shared types**: Use shared expense types for equal splits regardless of absences/exceptions
+7. **Absences**: If you don't have an absences file, everyone is assumed present for all days
 
 ## 🚨 Common Validation Errors
 

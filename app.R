@@ -6,6 +6,7 @@ library(readr)
 library(lubridate)
 library(tidyr)
 library(openxlsx)
+library(scales)
 
 ui <- page_sidebar(
   title = "House Expense Calculator",
@@ -16,7 +17,7 @@ ui <- page_sidebar(
               accept = ".csv"),
     fileInput("absences_file", "Upload Absences CSV (optional)",
               accept = ".csv"),
-    fileInput("exceptions_file", "Upload Exceptions CSV (optional)",
+    fileInput("exceptions_file", "Upload Exceptions CSV (optional - percentage participation)",
               accept = ".csv"),
     
     h4("Period Settings"),
@@ -30,6 +31,9 @@ ui <- page_sidebar(
     textAreaInput("expense_types", "Expense Types (one per line)",
                   value = "Normal\nParty\nAlcohol\nSpecial",
                   height = "100px"),
+    textAreaInput("shared_expense_types", "Shared Expense Types - Always Split Equally (one per line)",
+                  value = "Utilities\nSubscriptions\nInsurance",
+                  height = "80px"),
     
     actionButton("calculate", "Calculate Expenses", class = "btn-primary"),
     br(), br(),
@@ -143,6 +147,13 @@ server <- function(input, output, session) {
     expense_types <- trimws(strsplit(input$expense_types, "\n")[[1]])
     expense_types <- expense_types[expense_types != ""]
     
+    # Get shared expense types (always split equally)
+    shared_expense_types <- trimws(strsplit(input$shared_expense_types, "\n")[[1]])
+    shared_expense_types <- shared_expense_types[shared_expense_types != ""]
+    
+    # Combine all expense types for validation
+    all_expense_types <- unique(c(expense_types, shared_expense_types))
+    
     # Filter expenses by date range
     expenses <- expenses_data() |>
       filter(Date >= input$start_date & Date <= input$end_date)
@@ -199,6 +210,7 @@ server <- function(input, output, session) {
       exceptions <- data.frame(
         Person = character(0),
         Type = character(0),
+        Percentage = numeric(0),
         stringsAsFactors = FALSE
       )
     } else {
@@ -206,7 +218,7 @@ server <- function(input, output, session) {
       
       # Validate exceptions data
       exceptions_people_not_in_list <- setdiff(unique(exceptions$Person), people)
-      exceptions_types_not_in_list <- setdiff(unique(exceptions$Type), expense_types)
+      exceptions_types_not_in_list <- setdiff(unique(exceptions$Type), all_expense_types)
       
       if (length(exceptions_people_not_in_list) > 0) {
         validation_errors <- c(validation_errors, 
@@ -216,6 +228,13 @@ server <- function(input, output, session) {
       if (length(exceptions_types_not_in_list) > 0) {
         validation_errors <- c(validation_errors, 
           paste("🚫 Expense types in exceptions file but not in types list:", paste(exceptions_types_not_in_list, collapse = ", ")))
+      }
+      
+      # Validate percentage values
+      invalid_percentages <- exceptions$Percentage[exceptions$Percentage < 0 | exceptions$Percentage >= 1]
+      if (length(invalid_percentages) > 0) {
+        validation_errors <- c(validation_errors, 
+          paste("📊 Invalid percentage values in exceptions file (must be 0.0-0.99):", paste(invalid_percentages, collapse = ", ")))
       }
     }
     
@@ -279,14 +298,28 @@ server <- function(input, output, session) {
       )
     }
     
+    # Show info about shared expense types if any
+    shared_types_in_expenses <- intersect(shared_expense_types, unique(expenses$Type))
+    if (length(shared_types_in_expenses) > 0) {
+      showNotification(
+        shiny::HTML(paste("⚖️ <strong>Shared Expense Types (Equal Split):</strong><br>", 
+                         paste("•", shared_types_in_expenses, collapse = "<br>"))),
+        type = "message",
+        duration = 4
+      )
+    }
+    
     # Show info about exceptions if any
     if (nrow(exceptions) > 0) {
       exception_summary <- exceptions |>
         group_by(Type) |>
-        summarise(Excluded_People = paste(Person, collapse = ", "), .groups = "drop")
+        summarise(Exception_Details = paste(
+          paste(Person, "(", scales::percent(Percentage, accuracy = 1), ")", sep = ""), 
+          collapse = ", "
+        ), .groups = "drop")
       
       exception_msg <- paste(
-        apply(exception_summary, 1, function(x) paste("•", x["Type"], ":", x["Excluded_People"])), 
+        apply(exception_summary, 1, function(x) paste("•", x["Type"], ":", x["Exception_Details"])), 
         collapse = "<br>"
       )
       
@@ -316,7 +349,7 @@ server <- function(input, output, session) {
       summarise(Total_Amount = sum(Amount, na.rm = TRUE), .groups = "drop")
     
     # Calculate what each person owes (adjusted for absences)
-    final_calculations <- expand_grid(Type = expense_types, Person = people) |>
+    final_calculations <- expand_grid(Type = all_expense_types, Person = people) |>
       left_join(type_totals, by = "Type") |>
       left_join(presence_ratios, by = c("Person" = "Person")) |>
       left_join(expense_summary, by = c("Type", "Person" = "Person")) |>
@@ -330,10 +363,20 @@ server <- function(input, output, session) {
     final_calculations <- final_calculations |>
       group_by(Type) |>
       mutate(
-        # Check if person is excluded from this expense type
-        Is_Excluded = paste(Person, Type, sep = "-") %in% paste(exceptions$Person, exceptions$Type, sep = "-"),
-        # Set presence ratio to 0 for excluded people
-        Adjusted_Presence_Ratio = ifelse(Is_Excluded, 0, Presence_Ratio),
+        # Check if this is a shared expense type (always split equally)
+        Is_Shared_Type = Type %in% shared_expense_types,
+        # For shared types: use equal split, for others: apply exceptions and absences
+        Exception_Key = paste(Person, Type, sep = "-"),
+        Exception_Percentage = case_when(
+          Is_Shared_Type ~ 1.0,  # Shared types always 100% for everyone
+          Exception_Key %in% paste(exceptions$Person, exceptions$Type, sep = "-") ~ 
+            exceptions$Percentage[match(Exception_Key, paste(exceptions$Person, exceptions$Type, sep = "-"))],
+          TRUE ~ 1.0
+        ),
+        # For shared types: ignore presence ratio, for others: apply it
+        Base_Ratio = ifelse(Is_Shared_Type, 1.0, Presence_Ratio),
+        # Apply exception percentage to base ratio
+        Adjusted_Presence_Ratio = Base_Ratio * Exception_Percentage,
         Total_Presence_Weight = sum(Adjusted_Presence_Ratio),
         Share_Owed = ifelse(Total_Presence_Weight > 0, 
                            (Total_Amount * Adjusted_Presence_Ratio) / Total_Presence_Weight, 

@@ -476,51 +476,55 @@ server <- function(input, output, session) {
       paste0("House_Expenses_", format(Sys.Date(), "%Y%m%d"), ".xlsx")
     },
     content = function(file) {
-      req(calculations())
-      
-      if (is.null(calculations())) {
+      # Check if calculations exist
+      if (is.null(calculations()) || is.null(calculations()$final_settlement)) {
         showNotification("❌ No data to export. Please calculate expenses first.", type = "error")
-        return()
+        return(NULL)
       }
       
-      # Create workbook
-      wb <- createWorkbook()
-      
-      # Add Final Settlement sheet
-      addWorksheet(wb, "Final Settlement")
-      writeData(wb, "Final Settlement", calculations()$final_settlement)
-      
-      # Add Expense Summary sheet
-      addWorksheet(wb, "Expense Summary")
-      writeData(wb, "Expense Summary", calculations()$summary_by_type)
-      
-      # Add Expense Details sheet
-      addWorksheet(wb, "Expense Details")
-      writeData(wb, "Expense Details", calculations()$expenses)
-      
-      # Style the headers
-      headerStyle <- createStyle(
-        textDecoration = "bold",
-        fgFill = "#4F81BD",
-        fontColour = "white",
-        border = "all"
-      )
-      
-      # Apply header styling to all sheets
-      addStyle(wb, "Final Settlement", headerStyle, rows = 1, cols = 1:ncol(calculations()$final_settlement), gridExpand = TRUE)
-      addStyle(wb, "Expense Summary", headerStyle, rows = 1, cols = 1:ncol(calculations()$summary_by_type), gridExpand = TRUE)
-      addStyle(wb, "Expense Details", headerStyle, rows = 1, cols = 1:ncol(calculations()$expenses), gridExpand = TRUE)
-      
-      # Auto-size columns
-      setColWidths(wb, "Final Settlement", cols = 1:ncol(calculations()$final_settlement), widths = "auto")
-      setColWidths(wb, "Expense Summary", cols = 1:ncol(calculations()$summary_by_type), widths = "auto")
-      setColWidths(wb, "Expense Details", cols = 1:ncol(calculations()$expenses), widths = "auto")
-      
-      # Save workbook
-      saveWorkbook(wb, file, overwrite = TRUE)
-      
-      showNotification("📊 Excel file downloaded successfully!", type = "message")
-    }
+      tryCatch({
+        # Create workbook
+        wb <- createWorkbook()
+        
+        # Add Final Settlement sheet
+        addWorksheet(wb, "Final Settlement")
+        writeData(wb, "Final Settlement", calculations()$final_settlement)
+        
+        # Add Expense Summary sheet
+        addWorksheet(wb, "Expense Summary")
+        writeData(wb, "Expense Summary", calculations()$summary_by_type)
+        
+        # Add Expense Details sheet
+        addWorksheet(wb, "Expense Details")
+        writeData(wb, "Expense Details", calculations()$expenses)
+        
+        # Style the headers
+        headerStyle <- createStyle(
+          textDecoration = "bold",
+          fgFill = "#4F81BD",
+          fontColour = "white"
+        )
+        
+        # Apply header styling to all sheets
+        addStyle(wb, "Final Settlement", headerStyle, rows = 1, cols = 1:ncol(calculations()$final_settlement), gridExpand = TRUE)
+        addStyle(wb, "Expense Summary", headerStyle, rows = 1, cols = 1:ncol(calculations()$summary_by_type), gridExpand = TRUE)
+        addStyle(wb, "Expense Details", headerStyle, rows = 1, cols = 1:ncol(calculations()$expenses), gridExpand = TRUE)
+        
+        # Auto-size columns
+        setColWidths(wb, "Final Settlement", cols = 1:ncol(calculations()$final_settlement), widths = "auto")
+        setColWidths(wb, "Expense Summary", cols = 1:ncol(calculations()$summary_by_type), widths = "auto")
+        setColWidths(wb, "Expense Details", cols = 1:ncol(calculations()$expenses), widths = "auto")
+        
+        # Save workbook
+        saveWorkbook(wb, file, overwrite = TRUE)
+        
+        showNotification("📊 Excel file downloaded successfully!", type = "message")
+      }, error = function(e) {
+        showNotification(paste("❌ Error creating Excel file:", e$message), type = "error")
+        return(NULL)
+      })
+    },
+    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   )
   
   # Update filter dropdown choices when calculations change

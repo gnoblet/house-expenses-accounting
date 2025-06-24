@@ -403,10 +403,6 @@ server <- function(input, output, session) {
         Total_Owed = sum(Share_Owed),
         Final_Balance = sum(Balance),
         .groups = "drop"
-      ) |>
-      mutate(
-        Status = ifelse(Final_Balance > 0, "To Receive", "To Pay"),
-        Amount = abs(Final_Balance)
       )
     
     list(
@@ -466,7 +462,7 @@ server <- function(input, output, session) {
         rownames = FALSE,
         caption = "Final Settlement - Who Owes What"
       ) |>
-      DT::formatCurrency(c("Total_Paid", "Total_Owed", "Final_Balance", "Amount"), currency = "CHF ") |>
+      DT::formatCurrency(c("Total_Paid", "Total_Owed", "Final_Balance"), currency = "CHF ") |>
       DT::formatStyle(
         "Final_Balance",
         backgroundColor = DT::styleInterval(0, c("#ffebee", "#e8f5e8")),

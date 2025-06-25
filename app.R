@@ -5,8 +5,10 @@ library(dplyr)
 library(readr)
 library(lubridate)
 library(tidyr)
-library(openxlsx)
 library(scales)
+library(knitr)
+library(rmarkdown)
+library(kableExtra)
 
 ui <- page_sidebar(
   title = "House Expense Calculator",
@@ -37,7 +39,7 @@ ui <- page_sidebar(
     
     actionButton("calculate", "Calculate Expenses", class = "btn-primary"),
     br(), br(),
-    downloadButton("download_excel", "📊 Download Results as Excel", class = "btn-success")
+    downloadButton("download_pdf", "� Download PDF Report", class = "btn-success")
   ),
   
   navset_card_tab(
@@ -470,61 +472,273 @@ server <- function(input, output, session) {
       )
   })
   
-  # Download handler for Excel export
-  output$download_excel <- downloadHandler(
+  # Download handler for PDF report
+  output$download_pdf <- downloadHandler(
     filename = function() {
-      paste0("House_Expenses_", format(Sys.Date(), "%Y%m%d"), ".xlsx")
+      paste0("House_Expenses_Report_", format(Sys.Date(), "%Y%m%d"), ".pdf")
     },
     content = function(file) {
       # Check if calculations exist
       if (is.null(calculations()) || is.null(calculations()$final_settlement)) {
         showNotification("❌ No data to export. Please calculate expenses first.", type = "error")
-        return(NULL)
+        return()
       }
       
+      cat("Creating PDF report with R Markdown...\n")
+      
+      # Prepare data
+      final_settlement <- calculations()$final_settlement
+      summary_by_type <- calculations()$summary_by_type
+      expenses <- calculations()$expenses
+      detailed_calculations <- calculations()$detailed_calculations
+      
+      absences_summary <- if(!is.null(absences_data()) && nrow(absences_data()) > 0) {
+        absences_data()
+      } else {
+        data.frame(Person = character(0), Absent_Days = numeric(0))
+      }
+      
+      exceptions_summary <- if(!is.null(exceptions_data()) && nrow(exceptions_data()) > 0) {
+        exceptions_data()
+      } else {
+        data.frame(Person = character(0), Type = character(0), Percentage = numeric(0))
+      }
+      
+      # Create temporary R Markdown file
+      temp_rmd <- tempfile(fileext = ".Rmd")
+      
+      # Generate R Markdown content
+      rmd_content <- paste0('
+---
+title: "House Expenses Report"
+date: "', format(Sys.Date(), "%B %d, %Y"), '"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: true
+geometry: margin=0.8in
+mainfont: Carlito
+header-includes:
+  - \\usepackage{booktabs}
+  - \\usepackage{longtable}
+  - \\usepackage{array}
+  - \\usepackage{multirow}
+  - \\usepackage{wrapfig}
+  - \\usepackage{float}
+  - \\usepackage{colortbl}
+  - \\usepackage{pdflscape}
+  - \\usepackage{tabu}
+  - \\usepackage{threeparttable}
+  - \\usepackage{threeparttablex}
+  - \\usepackage[normalem]{ulem}
+  - \\usepackage{makecell}
+  - \\usepackage{xcolor}
+  - \\definecolor{softgreen}{RGB}{144,190,109}
+  - \\definecolor{softred}{RGB}{235,151,78}
+params:
+  start_date: "', input$start_date, '"
+  end_date: "', input$end_date, '"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(knitr)
+library(kableExtra)
+library(dplyr)
+library(scales)
+```
+
+# Executive Summary
+
+**Report Period:** ', format(input$start_date, "%B %d, %Y"), ' to ', format(input$end_date, "%B %d, %Y"), '
+
+**Total Expenses:** CHF ', sprintf("%.2f", sum(expenses$Amount, na.rm = TRUE)), '
+
+**Number of Transactions:** ', nrow(expenses), '
+
+**People Involved:** ', length(unique(expenses$Person)), '
+
+## Absences Summary
+
+', if(nrow(absences_summary) > 0) {
+  paste0('```{r absences-table}
+absences_data <- data.frame(
+  Person = c("', paste(absences_summary$Person, collapse = '", "'), '"),
+  Absent_Days = c(', paste(absences_summary$Absent_Days, collapse = ', '), ')
+)
+
+kable(absences_data, 
+      col.names = c("Person", "Absent Days"),
+      caption = "Absence Summary") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                latex_options = c("hold_position"))
+```')
+} else {
+  "No absences recorded for this period."
+}, '
+
+## Exceptions Summary
+
+', if(nrow(exceptions_summary) > 0) {
+  paste0('```{r exceptions-table}
+exceptions_data <- data.frame(
+  Person = c("', paste(exceptions_summary$Person, collapse = '", "'), '"),
+  Type = c("', paste(exceptions_summary$Type, collapse = '", "'), '"),
+  Percentage = c(', paste(exceptions_summary$Percentage, collapse = ', '), ')
+)
+
+exceptions_data$Percentage_Text <- paste0(round(exceptions_data$Percentage * 100, 1), "%")
+
+kable(exceptions_data[,c("Person", "Type", "Percentage_Text")], 
+      col.names = c("Person", "Expense Type", "Participation %"),
+      caption = "Expense Participation Exceptions") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                latex_options = c("hold_position"))
+```')
+} else {
+  "No exceptions applied for this period."
+}, '
+
+# Final Settlement
+
+```{r final-settlement}
+final_data <- data.frame(
+  Person = c("', paste(final_settlement$Person, collapse = '", "'), '"),
+  Total_Paid = c(', paste(final_settlement$Total_Paid, collapse = ', '), '),
+  Total_Owed = c(', paste(final_settlement$Total_Owed, collapse = ', '), '),
+  Final_Balance = c(', paste(final_settlement$Final_Balance, collapse = ', '), ')
+)
+
+final_data <- final_data %>%
+  arrange(desc(Final_Balance)) %>%
+  mutate(
+    Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
+    Total_Owed_Text = paste0("CHF ", sprintf("%.2f", Total_Owed)),
+    Final_Balance_Text = paste0("CHF ", sprintf("%.2f", Final_Balance)),
+    Balance_Color = ifelse(Final_Balance >= 0, "green", "red")
+  )
+
+kable(final_data[,c("Person", "Total_Paid_Text", "Total_Owed_Text", "Final_Balance_Text")], 
+      col.names = c("Person", "Total Paid", "Total Owed", "Final Balance"),
+      caption = "Final Settlement - Who Owes What") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                latex_options = c("hold_position")) %>%
+  column_spec(4, color = ifelse(final_data$Final_Balance >= 0, "softgreen", "softred"), bold = TRUE)
+```
+
+# Summary by Expense Type
+
+```{r summary-by-type}
+summary_data <- data.frame(
+  Type = c("', paste(summary_by_type$Type, collapse = '", "'), '"),
+  Total_Amount = c(', paste(summary_by_type$Total_Amount, collapse = ', '), '),
+  Total_Paid = c(', paste(summary_by_type$Total_Paid, collapse = ', '), '),
+  Total_Owed = c(', paste(summary_by_type$Total_Owed, collapse = ', '), ')
+)
+
+summary_data <- summary_data %>%
+  mutate(
+    Total_Amount_Text = paste0("CHF ", sprintf("%.2f", Total_Amount)),
+    Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
+    Total_Owed_Text = paste0("CHF ", sprintf("%.2f", Total_Owed))
+  )
+
+kable(summary_data[,c("Type", "Total_Amount_Text", "Total_Paid_Text", "Total_Owed_Text")], 
+      col.names = c("Expense Type", "Total Amount", "Total Paid", "Total Owed"),
+      caption = "Summary by Expense Type") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                latex_options = c("hold_position"))
+```
+
+# Expense Details
+
+```{r expense-details}
+expense_data <- data.frame(
+  Date = as.Date(c("', paste(expenses$Date, collapse = '", "'), '")),
+  Type = c("', paste(expenses$Type, collapse = '", "'), '"),
+  Person = c("', paste(expenses$Person, collapse = '", "'), '"),
+  Reason = c("', paste(gsub('"', '\\\\"', expenses$Reason), collapse = '", "'), '"),
+  Amount = c(', paste(expenses$Amount, collapse = ', '), ')
+)
+
+expense_data <- expense_data %>%
+  arrange(desc(Date)) %>%
+  mutate(
+    Date_Text = format(Date, "%Y-%m-%d"),
+    Amount_Text = paste0("CHF ", sprintf("%.2f", Amount))
+  )
+
+kable(expense_data[,c("Date_Text", "Type", "Person", "Reason", "Amount_Text")], 
+      col.names = c("Date", "Type", "Person", "Reason", "Amount"),
+      caption = "All Expense Details") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                latex_options = c("hold_position", "scale_down"))
+```
+
+# Detailed Calculations
+
+```{r detailed-calculations}
+detailed_data <- data.frame(
+  Person = c("', paste(detailed_calculations$Person, collapse = '", "'), '"),
+  Type = c("', paste(detailed_calculations$Type, collapse = '", "'), '"),
+  Total_Paid = c(', paste(detailed_calculations$Total_Paid, collapse = ', '), '),
+  Share_Owed = c(', paste(detailed_calculations$Share_Owed, collapse = ', '), '),
+  Balance = c(', paste(detailed_calculations$Balance, collapse = ', '), ')
+)
+
+detailed_data <- detailed_data %>%
+  filter(Total_Paid > 0 | Share_Owed > 0) %>%
+  arrange(Type, desc(Balance)) %>%
+  mutate(
+    Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
+    Share_Owed_Text = paste0("CHF ", sprintf("%.2f", Share_Owed)),
+    Balance_Text = paste0("CHF ", sprintf("%.2f", Balance))
+  )
+
+kable(detailed_data[,c("Person", "Type", "Total_Paid_Text", "Share_Owed_Text", "Balance_Text")], 
+      col.names = c("Person", "Type", "Paid", "Owed", "Balance"),
+      caption = "Detailed Calculations by Person and Type") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), 
+                latex_options = c("hold_position", "scale_down")) %>%
+  column_spec(5, color = ifelse(detailed_data$Balance >= 0, "softgreen", "softred"), bold = TRUE)
+```
+')
+      
+      # Write R Markdown content to temporary file
+      writeLines(rmd_content, temp_rmd)
+      
+      # Render R Markdown document
       tryCatch({
-        # Create workbook
-        wb <- createWorkbook()
-        
-        # Add Final Settlement sheet
-        addWorksheet(wb, "Final Settlement")
-        writeData(wb, "Final Settlement", calculations()$final_settlement)
-        
-        # Add Expense Summary sheet
-        addWorksheet(wb, "Expense Summary")
-        writeData(wb, "Expense Summary", calculations()$summary_by_type)
-        
-        # Add Expense Details sheet
-        addWorksheet(wb, "Expense Details")
-        writeData(wb, "Expense Details", calculations()$expenses)
-        
-        # Style the headers
-        headerStyle <- createStyle(
-          textDecoration = "bold",
-          fgFill = "#4F81BD",
-          fontColour = "white"
+        rmarkdown::render(
+          input = temp_rmd,
+          output_file = file,
+          quiet = FALSE
         )
         
-        # Apply header styling to all sheets
-        addStyle(wb, "Final Settlement", headerStyle, rows = 1, cols = 1:ncol(calculations()$final_settlement), gridExpand = TRUE)
-        addStyle(wb, "Expense Summary", headerStyle, rows = 1, cols = 1:ncol(calculations()$summary_by_type), gridExpand = TRUE)
-        addStyle(wb, "Expense Details", headerStyle, rows = 1, cols = 1:ncol(calculations()$expenses), gridExpand = TRUE)
+        cat("✓ PDF report created successfully with R Markdown\n")
+        showNotification("📄 PDF report generated successfully!", type = "message")
         
-        # Auto-size columns
-        setColWidths(wb, "Final Settlement", cols = 1:ncol(calculations()$final_settlement), widths = "auto")
-        setColWidths(wb, "Expense Summary", cols = 1:ncol(calculations()$summary_by_type), widths = "auto")
-        setColWidths(wb, "Expense Details", cols = 1:ncol(calculations()$expenses), widths = "auto")
-        
-        # Save workbook
-        saveWorkbook(wb, file, overwrite = TRUE)
-        
-        showNotification("📊 Excel file downloaded successfully!", type = "message")
       }, error = function(e) {
-        showNotification(paste("❌ Error creating Excel file:", e$message), type = "error")
-        return(NULL)
+        cat("❌ R Markdown PDF creation failed:", e$message, "\n")
+        showNotification(paste("❌ Error creating PDF report:", e$message), type = "error")
+        
+        # Create a simple CSV file as fallback
+        tryCatch({
+          write.csv(calculations()$final_settlement, file, row.names = FALSE)
+          showNotification("⚠️ PDF creation failed - provided CSV file instead", type = "warning")
+        }, error = function(e2) {
+          cat("❌ CSV fallback also failed:", e2$message, "\n")
+          writeLines("Error: Could not create report file", file)
+          showNotification("❌ Report creation failed completely", type = "error")
+        })
       })
+      
+      # Clean up temporary file
+      if (file.exists(temp_rmd)) {
+        file.remove(temp_rmd)
+      }
     },
-    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    contentType = "application/pdf"
   )
   
   # Update filter dropdown choices when calculations change

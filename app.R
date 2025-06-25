@@ -10,6 +10,39 @@ library(knitr)
 library(rmarkdown)
 library(kableExtra)
 
+# Function to load default values from assets folder
+load_default_from_assets <- function(filename, fallback_default) {
+  asset_path <- file.path("assets", filename)
+  if (file.exists(asset_path)) {
+    tryCatch({
+      content <- readLines(asset_path, warn = FALSE)
+      content <- content[content != ""]  # Remove empty lines
+      return(paste(content, collapse = "\n"))
+    }, error = function(e) {
+      cat("Warning: Could not read", asset_path, "- using fallback defaults\n")
+      return(fallback_default)
+    })
+  } else {
+    return(fallback_default)
+  }
+}
+
+# Load defaults from assets or use fallbacks
+default_people_list <- load_default_from_assets(
+  "people_list_default.txt",
+  "Alice\nBob\nCharlie\nDiana\nEve\nFrank\nGrace\nHenry"
+)
+
+default_expense_types <- load_default_from_assets(
+  "expense_types_default.txt", 
+  "Normal\nParty\nAlcohol\nSpecial"
+)
+
+default_shared_expense_types <- load_default_from_assets(
+  "shared_expense_types_default.txt",
+  "Utilities\nSubscriptions\nInsurance"
+)
+
 ui <- page_sidebar(
   title = "House Expense Calculator",
   sidebar = sidebar(
@@ -28,13 +61,13 @@ ui <- page_sidebar(
     
     h4("People & Expense Types"),
     textAreaInput("people_list", "People Names (one per line)",
-                  value = "Alice\nBob\nCharlie\nDiana\nEve\nFrank\nGrace\nHenry",
+                  value = default_people_list,
                   height = "120px"),
     textAreaInput("expense_types", "Expense Types (one per line)",
-                  value = "Normal\nParty\nAlcohol\nSpecial",
+                  value = default_expense_types,
                   height = "100px"),
     textAreaInput("shared_expense_types", "Shared Expense Types - Always Split Equally (one per line)",
-                  value = "Utilities\nSubscriptions\nInsurance",
+                  value = default_shared_expense_types,
                   height = "80px"),
     
     actionButton("calculate", "Calculate Expenses", class = "btn-primary"),
@@ -135,6 +168,22 @@ server <- function(input, output, session) {
     }, error = function(e) {
       showNotification(paste("❌ Error loading exceptions file:", e$message), type = "error")
     })
+  })
+  
+  # Load default exceptions on app start if available
+  observe({
+    if (is.null(exceptions_data())) {
+      asset_path <- file.path("assets", "exceptions_default.csv")
+      if (file.exists(asset_path)) {
+        tryCatch({
+          df <- read_csv(asset_path, show_col_types = FALSE)
+          exceptions_data(df)
+          cat("✓ Loaded default exceptions from assets/exceptions_default.csv\n")
+        }, error = function(e) {
+          cat("Warning: Could not read", asset_path, ":", e$message, "\n")
+        })
+      }
+    }
   })
   
   # Main calculation

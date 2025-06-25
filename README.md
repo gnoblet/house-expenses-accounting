@@ -33,3 +33,81 @@ Traditional expense splitting apps treat everyone equally, but real life isn't t
 6. View results in tabs, filter by expense type, download Excel report.
 
 See the `examples/README.md` for file format details and tips.
+
+## Assets - Default Configuration
+
+The app supports customizable default values through the `assets/` folder. This makes it easy to set up consistent defaults for your household without modifying the code.
+
+### Asset Files
+
+- **`assets/people_list_default.txt`**: Default list of people names (one per line)
+- **`assets/expense_types_default.txt`**: Default expense types (one per line)  
+- **`assets/shared_expense_types_default.txt`**: Default shared expense types that are always split equally (one per line)
+- **`assets/exceptions_default.csv`**: Default expense participation exceptions (CSV format)
+
+### How It Works
+
+When the app starts, it automatically:
+1. Checks if asset files exist in the `assets/` folder
+2. Loads content from text files into the app's input areas if they exist
+3. Loads the exceptions CSV file as default data if it exists
+4. Falls back to built-in defaults if files are missing or can't be read
+
+### Customization
+
+To customize defaults for your household:
+
+1. **Edit the files**: Modify the `.txt` files in the `assets/` folder
+2. **One entry per line**: Add or remove names/types as needed
+3. **Save and restart**: Restart the app to see your changes
+4. **Version control**: The `assets/` folder can be committed to git for team sharing
+
+### Example Setup
+
+**assets/people_list_default.txt:**
+```
+Alice
+Bob
+Charlie
+Diana
+Eve
+Frank
+Grace
+Henry
+```
+
+**assets/expense_types_default.txt:**
+```
+Normal
+Party
+Alcohol
+Special
+```
+
+**assets/shared_expense_types_default.txt:**
+```
+Utilities
+Subscriptions
+Insurance
+Internet
+```
+
+**assets/exceptions_default.csv:**
+```
+Person,Type,Percentage
+Bob,Alcohol,0.2
+Alice,Party,0.5
+```
+
+This exceptions file means:
+- Bob pays 20% of alcohol expenses (instead of full share)  
+- Alice pays 50% of party expenses
+- Everyone else pays their normal calculated share
+
+### Benefits
+
+- **Persistent**: Your customizations survive app restarts
+- **Shareable**: Team members get the same defaults
+- **Safe**: Built-in fallbacks if files are missing
+- **No coding**: Just edit text files to customize
+- **Flexible**: Different setups for different households

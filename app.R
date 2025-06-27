@@ -9,6 +9,10 @@ library(scales)
 library(knitr)
 library(rmarkdown)
 library(kableExtra)
+library(ggiraph)
+library(ggplot2)
+library(stringr)
+library(viridis)
 
 # Function to load default values from assets folder
 load_default_from_assets <- function(filename, fallback_default) {
@@ -262,6 +266,107 @@ ui <- div(
           ),
           br(),
           DT::dataTableOutput("filtered_settlement_table")
+        )
+      )
+    )
+  ),
+  
+  nav_panel(
+    "Long Term Analysis",
+    value = "long_term_analysis",
+    div(
+      class = "container-fluid",
+      style = "max-width: 1200px; margin: 0 auto; padding: 20px;",
+      
+      h2("📈 Long Term Analysis", class = "text-center mb-4"),
+      
+      fluidRow(
+        column(
+          12,
+          div(
+            class = "card",
+            div(
+              class = "card-header",
+              h4("Analysis Controls", class = "mb-0")
+            ),
+            div(
+              class = "card-body",
+              fluidRow(
+                column(
+                  4,
+                  selectInput(
+                    "analysis_type",
+                    "Analysis Type:",
+                    choices = list(
+                      "By Expense Type" = "type",
+                      "By Person" = "person",
+                      "Total Expenses" = "total"
+                    ),
+                    selected = "type"
+                  )
+                ),
+                column(
+                  4,
+                  selectInput(
+                    "period_grouping",
+                    "Group By:",
+                    choices = list(
+                      "Month" = "month",
+                      "Quarter" = "quarter",
+                      "Year" = "year"
+                    ),
+                    selected = "month"
+                  )
+                ),
+                column(
+                  4,
+                  checkboxInput(
+                    "include_shared",
+                    "Include Shared Expenses",
+                    value = TRUE
+                  )
+                )
+              )
+            )
+          )
+        )
+      ),
+      
+      br(),
+      
+      fluidRow(
+        column(
+          12,
+          div(
+            class = "card",
+            div(
+              class = "card-header",
+              h4("📊 Interactive Chart", class = "mb-0")
+            ),
+            div(
+              class = "card-body",
+              girafeOutput("long_term_chart", height = "600px")
+            )
+          )
+        )
+      ),
+      
+      br(),
+      
+      fluidRow(
+        column(
+          12,
+          div(
+            class = "card",
+            div(
+              class = "card-header",
+              h4("📋 Summary Table", class = "mb-0")
+            ),
+            div(
+              class = "card-body",
+              DT::dataTableOutput("long_term_table")
+            )
+          )
         )
       )
     )
@@ -1384,6 +1489,166 @@ kable(detailed_data[,c("Person", "Type", "Total_Paid_Text", "Share_Owed_Text", "
       paste("People who receive money:", people_receive),
       paste("People who are even:", people_even),
       sep = "\n"
+    )
+  })
+  
+  # Long Term Analysis reactive data
+  long_term_data <- reactive({
+    req(expenses_data())
+    
+    df <- expenses_data()
+    
+    # Filter by shared expenses if requested
+    if (!input$include_shared) {
+      df <- df[df$Type != "Shared", ]
+    }
+    
+    # Add period grouping
+    df$Period <- case_when(
+      input$period_grouping == "month" ~ format(df$Date, "%Y-%m"),
+      input$period_grouping == "quarter" ~ paste0(format(df$Date, "%Y"), "-Q", quarter(df$Date)),
+      input$period_grouping == "year" ~ format(df$Date, "%Y")
+    )
+    
+    # Group by period and analysis type
+    if (input$analysis_type == "type") {
+      grouped_data <- df %>%
+        group_by(Period, Type) %>%
+        summarise(
+          Total_Amount = sum(Amount, na.rm = TRUE),
+          Count = n(),
+          .groups = "drop"
+        ) %>%
+        arrange(Period, Type)
+    } else if (input$analysis_type == "person") {
+      grouped_data <- df %>%
+        group_by(Period, Person) %>%
+        summarise(
+          Total_Amount = sum(Amount, na.rm = TRUE),
+          Count = n(),
+          .groups = "drop"
+        ) %>%
+        arrange(Period, Person)
+    } else { # total
+      grouped_data <- df %>%
+        group_by(Period) %>%
+        summarise(
+          Total_Amount = sum(Amount, na.rm = TRUE),
+          Count = n(),
+          .groups = "drop"
+        ) %>%
+        arrange(Period) %>%
+        mutate(Category = "Total Expenses")
+    }
+    
+    return(grouped_data)
+  })
+  
+  # Long term chart output
+  output$long_term_chart <- renderGirafe({
+    req(long_term_data())
+    
+    data <- long_term_data()
+    
+    if (nrow(data) == 0) {
+      return(NULL)
+    }
+    
+    # Create the plot based on analysis type
+    if (input$analysis_type == "total") {
+      p <- ggplot(data, aes(x = Period, y = Total_Amount)) +
+        geom_col_interactive(
+          aes(tooltip = paste0("Period: ", Period, "\nTotal: CHF ", 
+                               sprintf("%.2f", Total_Amount), "\nTransactions: ", Count)),
+          fill = "#3498db",
+          alpha = 0.8
+        ) +
+        labs(
+          title = paste("Total Expenses by", str_to_title(input$period_grouping)),
+          x = str_to_title(input$period_grouping),
+          y = "Amount (CHF)"
+        )
+    } else {
+      color_var <- if (input$analysis_type == "type") "Type" else "Person"
+      
+      p <- ggplot(data, aes(x = Period, y = Total_Amount, fill = !!sym(color_var))) +
+        geom_col_interactive(
+          aes(tooltip = paste0("Period: ", Period, "\n", color_var, ": ", !!sym(color_var), 
+                               "\nAmount: CHF ", sprintf("%.2f", Total_Amount), 
+                               "\nTransactions: ", Count)),
+          alpha = 0.8,
+          position = "stack"
+        ) +
+        labs(
+          title = paste("Expenses by", str_to_title(input$period_grouping), "and", str_to_title(gsub("_", " ", input$analysis_type))),
+          x = str_to_title(input$period_grouping),
+          y = "Amount (CHF)",
+          fill = str_to_title(gsub("_", " ", color_var))
+        ) +
+        scale_fill_viridis_d(alpha = 0.8)
+    }
+    
+    # Common styling
+    p <- p +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 16, face = "bold"),
+        legend.position = "bottom"
+      ) +
+      scale_y_continuous(labels = scales::label_currency(prefix = "CHF "))
+    
+    # Create interactive plot
+    girafe(
+      ggobj = p,
+      width_svg = 12,
+      height_svg = 8,
+      options = list(
+        opts_hover_inv(css = "opacity:0.3;"),
+        opts_hover(css = "stroke:black;stroke-width:2px;"),
+        opts_tooltip(
+          css = "background-color:white;color:black;padding:10px;border-radius:5px;box-shadow:0 0 10px rgba(0,0,0,0.5);"
+        )
+      )
+    )
+  })
+  
+  # Long term table output
+  output$long_term_table <- DT::renderDataTable({
+    req(long_term_data())
+    
+    data <- long_term_data()
+    
+    if (nrow(data) == 0) {
+      return(DT::datatable(data.frame(Message = "No data available")))
+    }
+    
+    # Format the data for display
+    if (input$analysis_type == "total") {
+      display_data <- data %>%
+        mutate(
+          Amount = paste("CHF", sprintf("%.2f", Total_Amount)),
+          Transactions = Count
+        ) %>%
+        select(Period, Amount, Transactions)
+    } else {
+      category_col <- if (input$analysis_type == "type") "Type" else "Person"
+      display_data <- data %>%
+        mutate(
+          Amount = paste("CHF", sprintf("%.2f", Total_Amount)),
+          Transactions = Count
+        ) %>%
+        select(Period, !!sym(category_col), Amount, Transactions)
+    }
+    
+    DT::datatable(
+      display_data,
+      options = list(
+        pageLength = 15,
+        scrollX = TRUE,
+        order = list(list(0, "desc")) # Sort by period descending
+      ),
+      rownames = FALSE
     )
   })
 }

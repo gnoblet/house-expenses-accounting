@@ -50,84 +50,223 @@ default_shared_expense_types <- load_default_from_assets(
   "Utilities\nSubscriptions\nInsurance"
 )
 
-ui <- page_sidebar(
-  title = "House Expense Calculator",
-  sidebar = sidebar(
-    width = 350,
-    h4("Data Upload"),
-    fileInput("expenses_file", "Upload Expenses CSV", accept = ".csv"),
-    fileInput(
-      "absences_file",
-      "Upload Absences CSV (optional)",
-      accept = ".csv"
-    ),
-    fileInput(
-      "exceptions_file",
-      "Upload Exceptions CSV (optional - percentage participation)",
-      accept = ".csv"
-    ),
-
-    h4("Period Settings"),
-    dateInput(
-      "start_date",
-      "Start Date",
-      value = Sys.Date() - 90,
-      format = "dd M yyyy"
-    ),
-    dateInput("end_date", "End Date", value = Sys.Date(), format = "dd M yyyy"),
-
-    h4("People & Expense Types"),
-    textAreaInput(
-      "people_list",
-      "People Names (one per line)",
-      value = default_people_list,
-      height = "120px"
-    ),
-    textAreaInput(
-      "expense_types",
-      "Expense Types (one per line)",
-      value = default_expense_types,
-      height = "100px"
-    ),
-    textAreaInput(
-      "shared_expense_types",
-      "Shared Expense Types - Always Split Equally (one per line)",
-      value = default_shared_expense_types,
-      height = "80px"
-    ),
-
-    actionButton("calculate", "Calculate Expenses", class = "btn-primary"),
-    br(),
-    br(),
-    downloadButton(
-      "download_pdf",
-      "� Download PDF Report",
-      class = "btn-success"
-    )
-  ),
-
-  navset_card_tab(
-    nav_panel("Final Settlement", DT::dataTableOutput("final_table")),
-    nav_panel("Expense Summary", DT::dataTableOutput("summary_table")),
-    nav_panel("Expense Details", DT::dataTableOutput("expenses_table")),
+ui <- div(
+  
+  page_navbar(
+    title = "House Expense Calculator",
+    id = "main_nav",
+    
     nav_panel(
-      "Filter by Type",
+    "Setup & Calculate",
+    value = "setup_page",
+    div(
+      class = "container-fluid",
+      style = "max-width: 1200px; margin: 0 auto; padding: 20px;",
+      
+      h2("House Expense Calculator", class = "text-center mb-4"),
+      
       fluidRow(
         column(
-          4,
-          selectInput(
-            "filter_type",
-            "Select Expense Type:",
-            choices = NULL,
-            selected = NULL
+          6,
+          div(
+            class = "card",
+            div(
+              class = "card-header",
+              h4("📁 Data Upload", class = "mb-0")
+            ),
+            div(
+              class = "card-body",
+              fileInput("expenses_file", "Upload Expenses CSV", accept = ".csv"),
+              fileInput(
+                "absences_file",
+                "Upload Absences CSV (optional)",
+                accept = ".csv"
+              ),
+              fileInput(
+                "exceptions_file",
+                "Upload Exceptions CSV (optional - percentage participation)",
+                accept = ".csv"
+              )
+            )
+          ),
+          
+          br(),
+          
+          div(
+            class = "card",
+            div(
+              class = "card-header",
+              h4("📅 Period Settings", class = "mb-0")
+            ),
+            div(
+              class = "card-body",
+              fluidRow(
+                column(
+                  6,
+                  dateInput(
+                    "start_date",
+                    "Start Date",
+                    value = Sys.Date() - 90,
+                    format = "dd M yyyy"
+                  )
+                ),
+                column(
+                  6,
+                  dateInput("end_date", "End Date", value = Sys.Date(), format = "dd M yyyy")
+                )
+              )
+            )
           )
         ),
-        column(8, h5("Quick Summary:"), verbatimTextOutput("type_summary"))
+        
+        column(
+          6,
+          div(
+            class = "card",
+            div(
+              class = "card-header",
+              h4("👥 People & Expense Types", class = "mb-0")
+            ),
+            div(
+              class = "card-body",
+              textAreaInput(
+                "people_list",
+                "People Names (one per line)",
+                value = default_people_list,
+                height = "120px"
+              ),
+              textAreaInput(
+                "expense_types",
+                "Expense Types (one per line)",
+                value = default_expense_types,
+                height = "100px"
+              ),
+              textAreaInput(
+                "shared_expense_types",
+                "Shared Expense Types - Always Split Equally (one per line)",
+                value = default_shared_expense_types,
+                height = "80px"
+              )
+            )
+          )
+        )
       ),
+      
       br(),
-      DT::dataTableOutput("filtered_settlement_table")
+      
+      div(
+        class = "text-center",
+        actionButton(
+          "calculate", 
+          "🧮 Calculate Expenses", 
+          class = "btn-primary btn-lg",
+          style = "padding: 15px 30px; font-size: 18px;"
+        )
+      ),
+      
+      br(),
+      
+      # Instructions/Help section
+      div(
+        class = "card bg-light",
+        div(
+          class = "card-header",
+          h5("ℹ️ Instructions", class = "mb-0")
+        ),
+        div(
+          class = "card-body",
+          tags$ul(
+            tags$li("Upload your expenses CSV file with columns: Type, Reason, Date, Amount, Person"),
+            tags$li("Optionally upload absences CSV (Person, Absent_Days) and exceptions CSV (Person, Type, Percentage)"),
+            tags$li("Adjust the date range if needed - it will auto-update when you upload expenses"),
+            tags$li("Modify people names and expense types as needed"),
+            tags$li("Click 'Calculate Expenses' to see the results in the other tabs")
+          ),
+          br(),
+          h6("📥 Download Example Files:", class = "mb-2"),
+          div(
+            class = "d-flex flex-wrap gap-2",
+            downloadButton(
+              "download_expenses_example",
+              "📊 Expenses Example",
+              class = "btn-outline-secondary btn-sm"
+            ),
+            downloadButton(
+              "download_absences_example", 
+              "🏖️ Absences Example",
+              class = "btn-outline-secondary btn-sm"
+            ),
+            downloadButton(
+              "download_exceptions_example",
+              "⚙️ Exceptions Example", 
+              class = "btn-outline-secondary btn-sm"
+            )
+          )
+        )
+      )
+    )
+  ),
+  
+  nav_panel(
+    "Results",
+    value = "results",
+     # Top download button
+  div(
+    class = "container-fluid bg-light border-bottom",
+    style = "padding: 10px 0;",
+    div(
+      class = "container-fluid",
+      style = "max-width: 1200px;",
+      div(
+        class = "d-flex justify-content-end",
+        downloadButton(
+          "download_pdf",
+          "📄 Download PDF Report",
+          class = "btn-success"
+        )
+      )
+    )
+  ),
+    div(
+      class = "container-fluid",
+      navset_card_tab(
+        nav_panel(
+          "Final Settlement",
+          h4("💰 Final Settlement"),
+          DT::dataTableOutput("final_table")
+        ),
+        nav_panel(
+          "Expense Summary",
+          h4("📊 Expense Summary"),
+          DT::dataTableOutput("summary_table")
+        ),
+        nav_panel(
+          "Expense Details",
+          h4("📋 Expense Details"),
+          DT::dataTableOutput("expenses_table")
+        ),
+        nav_panel(
+          "Filter by Type",
+          h4("🔍 Filter by Type"),
+          fluidRow(
+            column(
+              4,
+              selectInput(
+                "filter_type",
+                "Select Expense Type:",
+                choices = NULL,
+                selected = NULL
+              )
+            ),
+            column(8, h5("Quick Summary:"), verbatimTextOutput("type_summary"))
+          ),
+          br(),
+          DT::dataTableOutput("filtered_settlement_table")
+        )
+      )
     )
   )
+)
 )
 
 server <- function(input, output, session) {
@@ -135,6 +274,11 @@ server <- function(input, output, session) {
   expenses_data <- reactiveVal(NULL)
   absences_data <- reactiveVal(NULL)
   exceptions_data <- reactiveVal(NULL)
+  
+  # Hide result tabs initially
+  observe({
+    hideTab(inputId = "main_nav", target = "results")
+  })
 
   # Load expenses file
   observeEvent(input$expenses_file, {
@@ -631,6 +775,23 @@ server <- function(input, output, session) {
     )
   })
 
+  # Navigate to results tabs after successful calculation
+  observe({
+    req(calculations())
+    if (!is.null(calculations())) {
+      # Show result tabs
+      showTab(inputId = "main_nav", target = "results")
+      
+      # Navigate to results tab
+      updateNavbarPage(session, "main_nav", selected = "results")
+      showNotification(
+        "✅ Calculation complete! Navigate between the tabs to see results.",
+        type = "message",
+        duration = 3
+      )
+    }
+  })
+
   # Display expenses table
   output$expenses_table <- DT::renderDataTable({
     req(calculations())
@@ -954,7 +1115,7 @@ expense_data <- data.frame(
         paste(expenses$Person, collapse = '", "'),
         '"),
   Reason = c("',
-        paste(gsub('"', '\\\\"', expenses$Reason), collapse = '", "'),
+        paste(gsub('"', '\\\\\\"', expenses$Reason), collapse = '", "'),
         '"),
   Amount = c(',
         paste(expenses$Amount, collapse = ', '),
@@ -1071,6 +1232,71 @@ kable(detailed_data[,c("Person", "Type", "Total_Paid_Text", "Share_Owed_Text", "
       }
     },
     contentType = "application/pdf"
+  )
+
+  # Download handlers for example files
+  output$download_expenses_example <- downloadHandler(
+    filename = function() {
+      "expenses_example.csv"
+    },
+    content = function(file) {
+      example_path <- file.path("examples", "expenses_example.csv")
+      if (file.exists(example_path)) {
+        file.copy(example_path, file)
+      } else {
+        # Create a basic example if file doesn't exist
+        example_data <- data.frame(
+          Type = c("Normal", "Party", "Normal", "Alcohol"),
+          Reason = c("Groceries", "Birthday Party", "Utilities", "Wine"),
+          Date = c("01/06/2025", "15/06/2025", "20/06/2025", "25/06/2025"),
+          Amount = c(45.50, 120.00, 85.30, 25.90),
+          Person = c("Alice", "Bob", "Charlie", "Alice")
+        )
+        write.csv(example_data, file, row.names = FALSE)
+      }
+    },
+    contentType = "text/csv"
+  )
+  
+  output$download_absences_example <- downloadHandler(
+    filename = function() {
+      "absences_example.csv"
+    },
+    content = function(file) {
+      example_path <- file.path("examples", "absences_example.csv")
+      if (file.exists(example_path)) {
+        file.copy(example_path, file)
+      } else {
+        # Create a basic example if file doesn't exist
+        example_data <- data.frame(
+          Person = c("Alice", "Bob", "Charlie", "Diana"),
+          Absent_Days = c(0, 5, 2, 0)
+        )
+        write.csv(example_data, file, row.names = FALSE)
+      }
+    },
+    contentType = "text/csv"
+  )
+  
+  output$download_exceptions_example <- downloadHandler(
+    filename = function() {
+      "exceptions_example.csv"
+    },
+    content = function(file) {
+      example_path <- file.path("examples", "exceptions_example.csv")
+      if (file.exists(example_path)) {
+        file.copy(example_path, file)
+      } else {
+        # Create a basic example if file doesn't exist
+        example_data <- data.frame(
+          Person = c("Alice", "Bob"),
+          Type = c("Alcohol", "Alcohol"),
+          Percentage = c(0.5, 0.0)
+        )
+        write.csv(example_data, file, row.names = FALSE)
+      }
+    },
+    contentType = "text/csv"
   )
 
   # Update filter dropdown choices when calculations change

@@ -111,3 +111,56 @@ This exceptions file means:
 - **Safe**: Built-in fallbacks if files are missing
 - **No coding**: Just edit text files to customize
 - **Flexible**: Different setups for different households
+
+---
+
+## Golem Framework
+
+This app is built using the [Golem](https://engineering-shiny.org/golem.html) framework for production-grade Shiny applications. Golem enforces modularity, best practices, and a robust development workflow.
+
+---
+
+## How to Run Locally (Development)
+
+**Do not run `app.R` directly.**
+
+To launch the app in development mode, use the Golem workflow:
+
+1. Open RStudio or your R console in the project root.
+2. Run:
+
+```r
+source("dev/run_dev.R")
+```
+
+This will:
+- Set development options
+- Detach and reload all packages
+- Document the package
+- Start the app with all assets and modules loaded
+
+---
+
+## Project Folder Structure (Key Parts)
+
+```
+inst/app/www/assets/
+    people_list_default.txt
+    expense_types_default.txt
+    shared_expense_types_default.txt
+    exceptions_default.csv
+    README.md
+inst/app/www/examples/
+    expenses_example.csv
+    absences_example.csv
+    exceptions_example.csv
+    people_list_example.txt
+    expense_types_example.txt
+    shared_expense_types_example.txt
+    README.md
+```
+
+- **assets/**: Default configuration files loaded at startup
+- **examples/**: Example files for user reference and testing
+
+---

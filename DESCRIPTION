@@ -1,0 +1,39 @@
+Package: houseexpenses
+Title: House Expense Calculator
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "firstname",
+           family = "lastname",
+           role = c("aut", "cre"),
+           email = "your@email.com")
+Description: A Shiny application for calculating and managing house expenses 
+    with support for absences, exceptions, and long-term analysis.
+License: MIT + file LICENSE
+Imports: 
+    bslib,
+    config (>= 0.3.1),
+    DT,
+    dplyr,
+    ggiraph,
+    ggplot2,
+    glue,
+    golem (>= 0.3.5),
+    htmltools,
+    kableExtra,
+    knitr,
+    lubridate,
+    magrittr,
+    readr,
+    rlang,
+    rmarkdown,
+    scales,
+    shiny (>= 1.7.2),
+    stringr,
+    tidyr,
+    viridis
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2

@@ -2,10 +2,9 @@ Package: houseexpenses
 Title: House Expense Calculator
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "firstname",
-           family = "lastname",
+    person(given = "gnoblet",
            role = c("aut", "cre"),
-           email = "your@email.com")
+           email = "gnoblet@zaclys.net")
 Description: A Shiny application for calculating and managing house expenses 
     with support for absences, exceptions, and long-term analysis.
 License: MIT + file LICENSE

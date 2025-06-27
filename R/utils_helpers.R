@@ -54,3 +54,70 @@ get_default_shared_expense_types <- function() {
     "Utilities\nSubscriptions\nInsurance"
   )
 }
+
+#' Validate Input Data Columns and Types
+#'
+#' @param df The data frame to validate
+#' @param required_cols Named list of required columns and their expected types (e.g., list(name = "character", amount = "numeric"))
+#' @return TRUE if valid, otherwise throws an error
+#' @export
+validate_input_data <- function(df, required_cols) {
+  missing_cols <- setdiff(names(required_cols), names(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
+  }
+  for (col in names(required_cols)) {
+    expected_type <- required_cols[[col]]
+    actual_type <- class(df[[col]])[1]
+    # Allow integer/numeric interchangeably
+    if (expected_type == "numeric" && actual_type == "integer") next
+    if (expected_type == "integer" && actual_type == "numeric") next
+    if (actual_type != expected_type) {
+      stop(paste0("Column '", col, "' should be of type '", expected_type, "' but is '", actual_type, "'"))
+    }
+  }
+  TRUE
+}
+
+#' Check Expenses Input File Columns and Types
+#'
+#' @param df The expenses data frame
+#' @return TRUE if valid, otherwise throws an error
+#' @export
+check_expenses_input <- function(df) {
+  required <- list(
+    Type = "character",
+    Reason = "character",
+    Date = "character", # could be Date if parsed
+    Amount = "numeric",
+    Person = "character"
+  )
+  validate_input_data(df, required)
+}
+
+#' Check Exceptions Input File Columns and Types
+#'
+#' @param df The exceptions data frame
+#' @return TRUE if valid, otherwise throws an error
+#' @export
+check_exceptions_input <- function(df) {
+  required <- list(
+    Person = "character",
+    Type = "character",
+    Percentage = "numeric"
+  )
+  validate_input_data(df, required)
+}
+
+#' Check Absences Input File Columns and Types
+#'
+#' @param df The absences data frame
+#' @return TRUE if valid, otherwise throws an error
+#' @export
+check_absences_input <- function(df) {
+  required <- list(
+    Person = "character",
+    Absent_Days = "numeric"
+  )
+  validate_input_data(df, required)
+}

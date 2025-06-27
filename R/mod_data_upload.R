@@ -68,31 +68,42 @@ mod_data_upload_server <- function(id) {
         # Convert Amount to numeric
         df$Amount <- as.numeric(df$Amount)
         
-        values$expenses_data <- df
-        
-        # Update date range
-        min_date <- min(df$Date, na.rm = TRUE)
-        max_date <- max(df$Date, na.rm = TRUE)
-        values$date_range <- list(start = min_date, end = max_date)
-        
-        shiny::showNotification(
-          "✅ Expenses file loaded successfully!",
-          type = "message"
-        )
-        shiny::showNotification(
-          paste(
-            "📅 Date range updated to cover all expenses:",
-            format(min_date, "%d/%m/%Y"),
-            "to",
-            format(max_date, "%d/%m/%Y")
-          ),
-          type = "message",
-          duration = 5
-        )
+        # Validate columns and types
+        tryCatch({
+          check_expenses_input(df)
+          values$expenses_data <- df
+          
+          # Update date range
+          min_date <- min(df$Date, na.rm = TRUE)
+          max_date <- max(df$Date, na.rm = TRUE)
+          values$date_range <- list(start = min_date, end = max_date)
+          
+          shiny::showNotification(
+            "✅ Expenses file loaded successfully!",
+            type = "message"
+          )
+          shiny::showNotification(
+            paste(
+              "📅 Date range updated to cover all expenses:",
+              format(min_date, "%d/%m/%Y"),
+              "to",
+              format(max_date, "%d/%m/%Y")
+            ),
+            type = "message",
+            duration = 5
+          )
+        }, error = function(e) {
+          shiny::showNotification(
+            paste("❌ Validation error in expenses file:", e$message),
+            type = "error",
+            duration = 10
+          )
+        })
       }, error = function(e) {
         shiny::showNotification(
-          paste("❌ Error loading expenses file:", e$message),
-          type = "error"
+          paste("❌ Error reading expenses file:", e$message),
+          type = "error",
+          duration = 10
         )
       })
     })
@@ -103,15 +114,25 @@ mod_data_upload_server <- function(id) {
       
       tryCatch({
         df <- readr::read_csv(input$absences_file$datapath, show_col_types = FALSE)
-        values$absences_data <- df
-        shiny::showNotification(
-          "✅ Absences file loaded successfully!",
-          type = "message"
-        )
+        tryCatch({
+          check_absences_input(df)
+          values$absences_data <- df
+          shiny::showNotification(
+            "✅ Absences file loaded successfully!",
+            type = "message"
+          )
+        }, error = function(e) {
+          shiny::showNotification(
+            paste("❌ Validation error in absences file:", e$message),
+            type = "error",
+            duration = 10
+          )
+        })
       }, error = function(e) {
         shiny::showNotification(
-          paste("❌ Error loading absences file:", e$message),
-          type = "error"
+          paste("❌ Error reading absences file:", e$message),
+          type = "error",
+          duration = 10
         )
       })
     })
@@ -122,15 +143,25 @@ mod_data_upload_server <- function(id) {
       
       tryCatch({
         df <- readr::read_csv(input$exceptions_file$datapath, show_col_types = FALSE)
-        values$exceptions_data <- df
-        shiny::showNotification(
-          "✅ Exceptions file loaded successfully!",
-          type = "message"
-        )
+        tryCatch({
+          check_exceptions_input(df)
+          values$exceptions_data <- df
+          shiny::showNotification(
+            "✅ Exceptions file loaded successfully!",
+            type = "message"
+          )
+        }, error = function(e) {
+          shiny::showNotification(
+            paste("❌ Validation error in exceptions file:", e$message),
+            type = "error",
+            duration = 10
+          )
+        })
       }, error = function(e) {
         shiny::showNotification(
-          paste("❌ Error loading exceptions file:", e$message),
-          type = "error"
+          paste("❌ Error reading exceptions file:", e$message),
+          type = "error",
+          duration = 10
         )
       })
     })

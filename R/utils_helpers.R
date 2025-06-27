@@ -88,7 +88,7 @@ check_expenses_input <- function(df) {
   required <- list(
     Type = "character",
     Reason = "character",
-    Date = "character", # could be Date if parsed
+    Date = "Date",
     Amount = "numeric",
     Person = "character"
   )

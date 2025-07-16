@@ -88,11 +88,17 @@ check_expenses_input <- function(df) {
   required <- list(
     Type = "character",
     Reason = "character",
-    Date = "Date",
+    Date = "character",
     Amount = "numeric",
     Person = "character"
   )
   validate_input_data(df, required)
+
+  # date is of format "MM/DD/YYYY"
+  # check that first 2 digits between 01 and 12
+  if (!all(grepl("^(0[1-9]|1[1,2])-(0[1-9]|[12][0-9]|3[01])-(19|20)\d{2}$", df$Date))) {
+    rlang::abort("Date column must be in MM-DD-YYYY format")
+  }
 }
 
 #' Check Exceptions Input File Columns and Types

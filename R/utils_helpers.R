@@ -126,7 +126,7 @@ check_expenses_input <- function(df) {
   # check that first 2 digits between 01 and 12
   if (
     !all(grepl(
-      "^(0[1-9]|1[1,2])-(0[1-9]|[12][0-9]|3[01])-(19|20)\d{2}$",
+      "^(0[1-9]|1[1,2])-(0[1-9]|[12][0-9]|3[01])-(19|20)\\d{2}$",
       df$Date
     ))
   ) {

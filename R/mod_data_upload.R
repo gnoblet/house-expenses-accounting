@@ -60,19 +60,22 @@ mod_data_upload_server <- function(id) {
         df <- readr::read_csv(input$expenses_file$datapath, show_col_types = FALSE)
         
         # Standardize column names
-        names(df) <- c("Type", "Reason", "Date", "Amount", "Person")
-        
-        # Convert date column
-        df$Date <- lubridate::dmy(df$Date)
-        
-        # Convert Amount to numeric
-        df$Amount <- as.numeric(df$Amount)
+        # Not needed since there is a check on column names
+        #names(df) <- c("Type", "Reason", "Date", "Amount", "Person")
         
         # Validate columns and types
         tryCatch({
           check_expenses_input(df)
-          values$expenses_data <- df
           
+          # Convert date column
+          df$Date <- lubridate::mdy(df$Date)
+          
+          # Convert Amount to numeric
+          df$Amount <- as.numeric(df$Amount)
+          
+          # Add data back
+          values$expenses_data <- df
+            
           # Update date range
           min_date <- min(df$Date, na.rm = TRUE)
           max_date <- max(df$Date, na.rm = TRUE)
@@ -166,21 +169,21 @@ mod_data_upload_server <- function(id) {
       })
     })
     
-    # Load default exceptions on start if available
-    shiny::observe({
-      if (is.null(values$exceptions_data)) {
-        asset_path <- system.file("app", "www", "assets", "exceptions_default.csv", package = "houseexpenses")
-        if (file.exists(asset_path)) {
-          tryCatch({
-            df <- readr::read_csv(asset_path, show_col_types = FALSE)
-            values$exceptions_data <- df
-            message("✓ Loaded default exceptions from assets/exceptions_default.csv")
-          }, error = function(e) {
-            message("Warning: Could not load default exceptions: ", e$message)
-          })
-        }
-      }
-    })
+    # # Load default exceptions on start if available
+    # shiny::observe({
+    #   if (is.null(values$exceptions_data)) {
+    #     asset_path <- system.file("app", "www", "assets", "exceptions_default.csv", package = "houseexpenses")
+    #     if (file.exists(asset_path)) {
+    #       tryCatch({
+    #         df <- readr::read_csv(asset_path, show_col_types = FALSE)
+    #         values$exceptions_data <- df
+    #         message("✓ Loaded default exceptions from assets/exceptions_default.csv")
+    #       }, error = function(e) {
+    #         message("Warning: Could not load default exceptions: ", e$message)
+    #       })
+    #     }
+    #   }
+    # })
     
     return(values)
   })

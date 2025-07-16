@@ -11,7 +11,7 @@ Traditional expense splitting apps treat everyone equally, but real life isn't t
 - **Shared services**: Utilities and subscriptions are always split equally, regardless of absences
 - **Transparency**: See exactly how calculations work, filter by expense type
 - **Flexibility**: Upload your data, set custom rules, export professional reports
-- **Fairness**: Mathematical precision ensures everyone pays their true fair share
+- **Fairness**: Non-manual calculations ensures everyone pays their true fair share
 
 ## Features
 
@@ -19,7 +19,7 @@ Traditional expense splitting apps treat everyone equally, but real life isn't t
 - **Shared expenses**: Some expense types always split equally (utilities, subscriptions)
 - **Expense exclusions**: People can participate at reduced rates in specific expense types (e.g., Bob pays 20% of alcohol)
 - **Dynamic date ranges**: Auto-adjusts to uploaded expense data
-- **Excel export**: Download all results as formatted spreadsheet
+- **PDF export**: Download all results as formatted pdf
 - **Tabbed interface**: Final settlement, summaries, details, and filtered analysis
 - **Robust validation**: Clear error messages and warnings
 

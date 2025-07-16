@@ -1,6 +1,6 @@
 # house-expenses-accounting
 
-A Shiny app to split and track shared house expenses fairly among housemates. Upload your expenses and (optionally) absences/exceptions as CSV files, set your period, and get a clear summary of who owes what. Features weighted calculations for absences, expense exclusions, Excel export, and tabbed analysis views.
+A Shiny app to split and track shared house expenses fairly among housemates. Upload your expenses and (optionally) absences/exceptions as CSV files, set your period, and get a clear summary of who owes what. Features weighted calculations for absences, expense exclusions, PDF export, and tabbed analysis views.
 
 ## Why
 
@@ -22,6 +22,12 @@ Traditional expense splitting apps treat everyone equally, but real life isn't t
 - **PDF export**: Download all results as formatted pdf
 - **Tabbed interface**: Final settlement, summaries, details, and filtered analysis
 - **Robust validation**: Clear error messages and warnings
+
+## Next steps
+
+- [ ] Add tests and checks
+- [ ] Provide longitudinal analysis (and other features?)
+- [ ] Review design and viz approach
 
 ## Quick Start
 

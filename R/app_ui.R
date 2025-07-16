@@ -13,19 +13,19 @@ app_ui <- function(request) {
     bslib::page_navbar(
       title = "House Expense Calculator",
       id = "main_nav",
-      
+
       bslib::nav_panel(
         "Setup & Calculate",
         value = "setup_page",
         mod_setup_ui("setup")
       ),
-      
+
       bslib::nav_panel(
         "Results",
         value = "results",
         mod_results_ui("results")
       ),
-      
+
       bslib::nav_panel(
         "Long Term Analysis",
         value = "long_term_analysis",

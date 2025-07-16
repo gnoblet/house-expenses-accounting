@@ -6,7 +6,7 @@
 #' @export
 mod_results_ui <- function(id) {
   ns <- shiny::NS(id)
-  
+
   shiny::div(
     # Top download button
     shiny::div(
@@ -59,7 +59,11 @@ mod_results_ui <- function(id) {
                 selected = NULL
               )
             ),
-            shiny::column(8, shiny::h5("Quick Summary:"), shiny::verbatimTextOutput(ns("type_summary")))
+            shiny::column(
+              8,
+              shiny::h5("Quick Summary:"),
+              shiny::verbatimTextOutput(ns("type_summary"))
+            )
           ),
           shiny::br(),
           DT::dataTableOutput(ns("filtered_settlement_table"))
@@ -79,19 +83,25 @@ mod_results_ui <- function(id) {
 #' @param exceptions_data Reactive exceptions data
 #'
 #' @export
-mod_results_server <- function(id, calculations, start_date, end_date, absences_data, exceptions_data) {
+mod_results_server <- function(
+  id,
+  calculations,
+  start_date,
+  end_date,
+  absences_data,
+  exceptions_data
+) {
   shiny::moduleServer(id, function(input, output, session) {
-    
     # Display expenses table
     output$expenses_table <- DT::renderDataTable({
       shiny::req(calculations())
-      
+
       if (is.null(calculations())) {
         return(DT::datatable(data.frame(
           Message = "⚠️ Please fix validation errors and recalculate"
         )))
       }
-      
+
       calculations()$expenses |>
         dplyr::arrange(dplyr::desc(Date)) |>
         DT::datatable(
@@ -100,17 +110,17 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
         ) |>
         DT::formatCurrency("Amount", currency = "CHF ")
     })
-    
+
     # Display summary table
     output$summary_table <- DT::renderDataTable({
       shiny::req(calculations())
-      
+
       if (is.null(calculations())) {
         return(DT::datatable(data.frame(
           Message = "⚠️ Please fix validation errors and recalculate"
         )))
       }
-      
+
       calculations()$summary_by_type |>
         DT::datatable(
           options = list(pageLength = 10, scrollX = TRUE),
@@ -122,17 +132,17 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
           currency = "CHF "
         )
     })
-    
+
     # Display final settlement table
     output$final_table <- DT::renderDataTable({
       shiny::req(calculations())
-      
+
       if (is.null(calculations())) {
         return(DT::datatable(data.frame(
           Message = "⚠️ Please fix validation errors and recalculate"
         )))
       }
-      
+
       calculations()$final_settlement |>
         dplyr::arrange(dplyr::desc(Final_Balance)) |>
         DT::datatable(
@@ -150,7 +160,7 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
           fontWeight = "bold"
         )
     })
-    
+
     # Update filter dropdown choices when calculations change
     shiny::observe({
       shiny::req(calculations())
@@ -165,23 +175,30 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
         )
       }
     })
-    
+
     # Display filtered settlement table
     output$filtered_settlement_table <- DT::renderDataTable({
       shiny::req(calculations(), input$filter_type)
-      
+
       if (is.null(calculations()) || is.null(input$filter_type)) {
         return(DT::datatable(data.frame(
           Message = "⚠️ Please calculate expenses and select a type"
         )))
       }
-      
+
       # Filter detailed calculations for selected type
       filtered_data <- calculations()$detailed_calculations |>
         dplyr::filter(Type == input$filter_type) |>
-        dplyr::select(Person, Type, Total_Amount, Total_Paid, Share_Owed, Balance) |>
+        dplyr::select(
+          Person,
+          Type,
+          Total_Amount,
+          Total_Paid,
+          Share_Owed,
+          Balance
+        ) |>
         dplyr::arrange(dplyr::desc(Balance))
-      
+
       DT::datatable(
         filtered_data,
         options = list(pageLength = 15, scrollX = TRUE),
@@ -198,29 +215,29 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
           fontWeight = "bold"
         )
     })
-    
+
     # Display type summary
     output$type_summary <- shiny::renderText({
       shiny::req(calculations(), input$filter_type)
-      
+
       if (is.null(calculations()) || is.null(input$filter_type)) {
         return("Select an expense type to see summary")
       }
-      
+
       # Get summary for selected type
       filtered_data <- calculations()$detailed_calculations |>
         dplyr::filter(Type == input$filter_type)
-      
+
       total_amount <- dplyr::first(filtered_data$Total_Amount)
       total_paid <- sum(filtered_data$Total_Paid)
       total_owed <- sum(filtered_data$Share_Owed)
       net_balance <- sum(filtered_data$Balance)
-      
+
       # Count people who owe vs receive
       people_owe <- sum(filtered_data$Balance < 0)
       people_receive <- sum(filtered_data$Balance > 0)
       people_even <- sum(filtered_data$Balance == 0)
-      
+
       paste(
         paste(
           "Total",
@@ -238,7 +255,7 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
         sep = "\n"
       )
     })
-    
+
     # Download handler for PDF report
     output$download_pdf <- shiny::downloadHandler(
       filename = function() {
@@ -246,21 +263,23 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
       },
       content = function(file) {
         # Check if calculations exist
-        if (is.null(calculations()) || is.null(calculations()$final_settlement)) {
+        if (
+          is.null(calculations()) || is.null(calculations()$final_settlement)
+        ) {
           shiny::showNotification(
             "❌ No data to export. Please calculate expenses first.",
             type = "error"
           )
           return()
         }
-        
+
         # Generate PDF report
         generate_pdf_report(
-          calculations(), 
-          start_date(), 
-          end_date(), 
-          absences_data(), 
-          exceptions_data(), 
+          calculations(),
+          start_date(),
+          end_date(),
+          absences_data(),
+          exceptions_data(),
           file
         )
       },
@@ -270,5 +289,13 @@ mod_results_server <- function(id, calculations, start_date, end_date, absences_
 }
 
 # Global variables for NSE
-utils::globalVariables(c("Date", "Final_Balance", "Type", "Person", "Total_Amount", 
-                        "Total_Paid", "Share_Owed", "Balance"))
+utils::globalVariables(c(
+  "Date",
+  "Final_Balance",
+  "Type",
+  "Person",
+  "Total_Amount",
+  "Total_Paid",
+  "Share_Owed",
+  "Balance"
+))

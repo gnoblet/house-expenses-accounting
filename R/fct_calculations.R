@@ -36,8 +36,8 @@ process_expenses <- function(
 
   # Filter expenses by date range
   if (any(is.na(names(expenses_data)) | names(expenses_data) == "")) {
-  rlang::abort("Expenses data has columns with missing or empty names.")
-}
+    rlang::abort("Expenses data has columns with missing or empty names.")
+  }
   expenses <- expenses_data |>
     dplyr::filter(Date >= start_date & Date <= end_date)
 

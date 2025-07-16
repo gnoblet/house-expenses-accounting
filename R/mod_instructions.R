@@ -6,7 +6,7 @@
 #' @export
 mod_instructions_ui <- function(id) {
   ns <- shiny::NS(id)
-  
+
   shiny::div(
     class = "card bg-light",
     shiny::div(
@@ -16,11 +16,19 @@ mod_instructions_ui <- function(id) {
     shiny::div(
       class = "card-body",
       shiny::tags$ul(
-        shiny::tags$li("Upload your expenses CSV file with columns: Type, Reason, Date, Amount, Person"),
-        shiny::tags$li("Optionally upload absences CSV (Person, Absent_Days) and exceptions CSV (Person, Type, Percentage)"),
-        shiny::tags$li("Adjust the date range if needed - it will auto-update when you upload expenses"),
+        shiny::tags$li(
+          "Upload your expenses CSV file with columns: Type, Reason, Date, Amount, Person"
+        ),
+        shiny::tags$li(
+          "Optionally upload absences CSV (Person, Absent_Days) and exceptions CSV (Person, Type, Percentage)"
+        ),
+        shiny::tags$li(
+          "Adjust the date range if needed - it will auto-update when you upload expenses"
+        ),
         shiny::tags$li("Modify people names and expense types as needed"),
-        shiny::tags$li("Click 'Calculate Expenses' to see the results in the other tabs")
+        shiny::tags$li(
+          "Click 'Calculate Expenses' to see the results in the other tabs"
+        )
       ),
       shiny::br(),
       shiny::h6("📥 Download Example Files:", class = "mb-2"),
@@ -32,13 +40,13 @@ mod_instructions_ui <- function(id) {
           class = "btn-outline-secondary btn-sm"
         ),
         shiny::downloadButton(
-          ns("download_absences_example"), 
+          ns("download_absences_example"),
           "🏖️ Absences Example",
           class = "btn-outline-secondary btn-sm"
         ),
         shiny::downloadButton(
           ns("download_exceptions_example"),
-          "⚙️ Exceptions Example", 
+          "⚙️ Exceptions Example",
           class = "btn-outline-secondary btn-sm"
         )
       )
@@ -53,14 +61,19 @@ mod_instructions_ui <- function(id) {
 #' @export
 mod_instructions_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
-    
     # Download handlers for example files
     output$download_expenses_example <- shiny::downloadHandler(
       filename = function() {
         "expenses_example.csv"
       },
       content = function(file) {
-        example_path <- system.file("app", "www", "examples", "expenses_example.csv", package = "houseexpenses")
+        example_path <- system.file(
+          "app",
+          "www",
+          "examples",
+          "expenses_example.csv",
+          package = "houseexpenses"
+        )
         if (file.exists(example_path)) {
           file.copy(example_path, file)
         } else {
@@ -77,13 +90,19 @@ mod_instructions_server <- function(id) {
       },
       contentType = "text/csv"
     )
-    
+
     output$download_absences_example <- shiny::downloadHandler(
       filename = function() {
         "absences_example.csv"
       },
       content = function(file) {
-        example_path <- system.file("app", "www", "examples", "absences_example.csv", package = "houseexpenses")
+        example_path <- system.file(
+          "app",
+          "www",
+          "examples",
+          "absences_example.csv",
+          package = "houseexpenses"
+        )
         if (file.exists(example_path)) {
           file.copy(example_path, file)
         } else {
@@ -97,13 +116,19 @@ mod_instructions_server <- function(id) {
       },
       contentType = "text/csv"
     )
-    
+
     output$download_exceptions_example <- shiny::downloadHandler(
       filename = function() {
         "exceptions_example.csv"
       },
       content = function(file) {
-        example_path <- system.file("app", "www", "examples", "exceptions_example.csv", package = "houseexpenses")
+        example_path <- system.file(
+          "app",
+          "www",
+          "examples",
+          "exceptions_example.csv",
+          package = "houseexpenses"
+        )
         if (file.exists(example_path)) {
           file.copy(example_path, file)
         } else {

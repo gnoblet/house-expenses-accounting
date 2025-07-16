@@ -6,16 +6,29 @@
 #' @return Character string with file content or fallback default
 #' @export
 load_default_from_assets <- function(filename, fallback_default) {
-  asset_path <- system.file("app", "www", "assets", filename, package = "houseexpenses")
+  asset_path <- system.file(
+    "app",
+    "www",
+    "assets",
+    filename,
+    package = "houseexpenses"
+  )
   if (file.exists(asset_path)) {
-    tryCatch({
-      content <- readLines(asset_path, warn = FALSE)
-      content <- content[content != ""] # Remove empty lines
-      paste(content, collapse = "\n")
-    }, error = function(e) {
-      message("Warning: Could not read ", asset_path, " - using fallback defaults")
-      fallback_default
-    })
+    tryCatch(
+      {
+        content <- readLines(asset_path, warn = FALSE)
+        content <- content[content != ""] # Remove empty lines
+        paste(content, collapse = "\n")
+      },
+      error = function(e) {
+        message(
+          "Warning: Could not read ",
+          asset_path,
+          " - using fallback defaults"
+        )
+        fallback_default
+      }
+    )
   } else {
     fallback_default
   }
@@ -64,16 +77,31 @@ get_default_shared_expense_types <- function() {
 validate_input_data <- function(df, required_cols) {
   missing_cols <- setdiff(names(required_cols), names(df))
   if (length(missing_cols) > 0) {
-    stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
+    stop(paste(
+      "Missing required columns:",
+      paste(missing_cols, collapse = ", ")
+    ))
   }
   for (col in names(required_cols)) {
     expected_type <- required_cols[[col]]
     actual_type <- class(df[[col]])[1]
     # Allow integer/numeric interchangeably
-    if (expected_type == "numeric" && actual_type == "integer") next
-    if (expected_type == "integer" && actual_type == "numeric") next
+    if (expected_type == "numeric" && actual_type == "integer") {
+      next
+    }
+    if (expected_type == "integer" && actual_type == "numeric") {
+      next
+    }
     if (actual_type != expected_type) {
-      stop(paste0("Column '", col, "' should be of type '", expected_type, "' but is '", actual_type, "'"))
+      stop(paste0(
+        "Column '",
+        col,
+        "' should be of type '",
+        expected_type,
+        "' but is '",
+        actual_type,
+        "'"
+      ))
     }
   }
   TRUE
@@ -96,7 +124,12 @@ check_expenses_input <- function(df) {
 
   # date is of format "MM/DD/YYYY"
   # check that first 2 digits between 01 and 12
-  if (!all(grepl("^(0[1-9]|1[1,2])-(0[1-9]|[12][0-9]|3[01])-(19|20)\d{2}$", df$Date))) {
+  if (
+    !all(grepl(
+      "^(0[1-9]|1[1,2])-(0[1-9]|[12][0-9]|3[01])-(19|20)\d{2}$",
+      df$Date
+    ))
+  ) {
     rlang::abort("Date column must be in MM-DD-YYYY format")
   }
 }

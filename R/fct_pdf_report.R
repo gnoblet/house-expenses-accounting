@@ -8,24 +8,28 @@
 #' @param file Output file path
 #'
 #' @export
-generate_pdf_report <- function(calculations, start_date, end_date, absences_data, exceptions_data, file) {
-  
+generate_pdf_report <- function(
+  calculations,
+  start_date,
+  end_date,
+  absences_data,
+  exceptions_data,
+  file
+) {
   message("Creating PDF report with R Markdown...")
-  
+
   # Prepare data
   final_settlement <- calculations$final_settlement
   summary_by_type <- calculations$summary_by_type
   expenses <- calculations$expenses
   detailed_calculations <- calculations$detailed_calculations
-  
-  absences_summary <- if (
-    !is.null(absences_data) && nrow(absences_data) > 0
-  ) {
+
+  absences_summary <- if (!is.null(absences_data) && nrow(absences_data) > 0) {
     absences_data
   } else {
     data.frame(Person = character(0), Absent_Days = numeric(0))
   }
-  
+
   exceptions_summary <- if (
     !is.null(exceptions_data) && nrow(exceptions_data) > 0
   ) {
@@ -37,57 +41,69 @@ generate_pdf_report <- function(calculations, start_date, end_date, absences_dat
       Percentage = numeric(0)
     )
   }
-  
+
   # Create temporary R Markdown file
   temp_rmd <- tempfile(fileext = ".Rmd")
-  
+
   # Generate R Markdown content
   rmd_content <- create_rmd_content(
-    start_date, end_date, expenses, absences_summary, exceptions_summary,
-    final_settlement, summary_by_type, detailed_calculations
+    start_date,
+    end_date,
+    expenses,
+    absences_summary,
+    exceptions_summary,
+    final_settlement,
+    summary_by_type,
+    detailed_calculations
   )
-  
+
   # Write R Markdown content to temporary file
   writeLines(rmd_content, temp_rmd)
-  
+
   # Render R Markdown document
-  result <- tryCatch({
-    rmarkdown::render(
-      input = temp_rmd,
-      output_file = file,
-      output_format = "pdf_document",
-      quiet = FALSE
-    )
-    message("✓ PDF report created successfully with R Markdown")
-    shiny::showNotification(
-      "📄 PDF report generated successfully!",
-      type = "message"
-    )
-    TRUE
-  }, error = function(e) {
-    message("❌ R Markdown PDF creation failed: ", e$message)
-    shiny::showNotification(
-      paste("❌ Error creating PDF report:", e$message),
-      type = "error"
-    )
-    # Create a simple CSV file as fallback
-    tryCatch({
-      utils::write.csv(
-        calculations$final_settlement,
-        file,
-        row.names = FALSE
+  result <- tryCatch(
+    {
+      rmarkdown::render(
+        input = temp_rmd,
+        output_file = file,
+        output_format = "pdf_document",
+        quiet = FALSE
       )
+      message("✓ PDF report created successfully with R Markdown")
       shiny::showNotification(
-        "⚠️ PDF creation failed - provided CSV file instead",
-        type = "warning"
+        "📄 PDF report generated successfully!",
+        type = "message"
       )
-    }, error = function(e2) {
-      message("❌ CSV fallback also failed: ", e2$message)
-      writeLines("Error: Could not create report file", file)
-    })
-    FALSE
-  })
-  
+      TRUE
+    },
+    error = function(e) {
+      message("❌ R Markdown PDF creation failed: ", e$message)
+      shiny::showNotification(
+        paste("❌ Error creating PDF report:", e$message),
+        type = "error"
+      )
+      # Create a simple CSV file as fallback
+      tryCatch(
+        {
+          utils::write.csv(
+            calculations$final_settlement,
+            file,
+            row.names = FALSE
+          )
+          shiny::showNotification(
+            "⚠️ PDF creation failed - provided CSV file instead",
+            type = "warning"
+          )
+        },
+        error = function(e2) {
+          message("❌ CSV fallback also failed: ", e2$message)
+          writeLines("Error: Could not create report file", file)
+        }
+      )
+      FALSE
+    }
+  )
+
   # Clean up temporary file
   if (file.exists(temp_rmd)) {
     file.remove(temp_rmd)
@@ -106,14 +122,22 @@ generate_pdf_report <- function(calculations, start_date, end_date, absences_dat
 #' @param detailed_calculations Detailed calculations data frame
 #'
 #' @return Character string with R Markdown content
-create_rmd_content <- function(start_date, end_date, expenses, absences_summary, 
-                              exceptions_summary, final_settlement, summary_by_type, 
-                              detailed_calculations) {
-  
+create_rmd_content <- function(
+  start_date,
+  end_date,
+  expenses,
+  absences_summary,
+  exceptions_summary,
+  final_settlement,
+  summary_by_type,
+  detailed_calculations
+) {
   paste0(
     '---
 title: "House Expenses Report"
-date: "', format(Sys.Date(), "%B %d, %Y"), '"
+date: "',
+    format(Sys.Date(), "%B %d, %Y"),
+    '"
 output: 
   pdf_document:
     latex_engine: xelatex
@@ -138,8 +162,12 @@ header-includes:
   - \\definecolor{softgreen}{RGB}{144,190,109}
   - \\definecolor{softred}{RGB}{235,151,78}
 params:
-  start_date: "', start_date, '"
-  end_date: "', end_date, '"
+  start_date: "',
+    start_date,
+    '"
+  end_date: "',
+    end_date,
+    '"
 ---
 
 ```{r setup, include=FALSE}
@@ -152,25 +180,47 @@ library(scales)
 
 # Executive Summary
 
-**Report Period:** ', format(start_date, "%B %d, %Y"), ' to ', format(end_date, "%B %d, %Y"), '
+**Report Period:** ',
+    format(start_date, "%B %d, %Y"),
+    ' to ',
+    format(end_date, "%B %d, %Y"),
+    '
 
-**Total Expenses:** CHF ', sprintf("%.2f", sum(expenses$Amount, na.rm = TRUE)), '
+**Total Expenses:** CHF ',
+    sprintf("%.2f", sum(expenses$Amount, na.rm = TRUE)),
+    '
 
-**Number of Transactions:** ', nrow(expenses), '
+**Number of Transactions:** ',
+    nrow(expenses),
+    '
 
-**People Involved:** ', length(unique(expenses$Person)), '
+**People Involved:** ',
+    length(unique(expenses$Person)),
+    '
 
-', create_absences_section(absences_summary), '
+',
+    create_absences_section(absences_summary),
+    '
 
-', create_exceptions_section(exceptions_summary), '
+',
+    create_exceptions_section(exceptions_summary),
+    '
 
-', create_final_settlement_section(final_settlement), '
+',
+    create_final_settlement_section(final_settlement),
+    '
 
-', create_summary_by_type_section(summary_by_type), '
+',
+    create_summary_by_type_section(summary_by_type),
+    '
 
-', create_expense_details_section(expenses), '
+',
+    create_expense_details_section(expenses),
+    '
 
-', create_detailed_calculations_section(detailed_calculations), '
+',
+    create_detailed_calculations_section(detailed_calculations),
+    '
 '
   )
 }
@@ -187,8 +237,12 @@ create_absences_section <- function(absences_summary) {
 
 ```{r absences-table}
 absences_data <- data.frame(
-  Person = c("', paste(absences_summary$Person, collapse = '", "'), '"),
-  Absent_Days = c(', paste(absences_summary$Absent_Days, collapse = ', '), ')
+  Person = c("',
+      paste(absences_summary$Person, collapse = '", "'),
+      '"),
+  Absent_Days = c(',
+      paste(absences_summary$Absent_Days, collapse = ', '),
+      ')
 )
 
 kable(absences_data, 
@@ -215,9 +269,15 @@ create_exceptions_section <- function(exceptions_summary) {
 
 ```{r exceptions-table}
 exceptions_data <- data.frame(
-  Person = c("', paste(exceptions_summary$Person, collapse = '", "'), '"),
-  Type = c("', paste(exceptions_summary$Type, collapse = '", "'), '"),
-  Percentage = c(', paste(exceptions_summary$Percentage, collapse = ', '), ')
+  Person = c("',
+      paste(exceptions_summary$Person, collapse = '", "'),
+      '"),
+  Type = c("',
+      paste(exceptions_summary$Type, collapse = '", "'),
+      '"),
+  Percentage = c(',
+      paste(exceptions_summary$Percentage, collapse = ', '),
+      ')
 )
 
 exceptions_data$Percentage_Text <- paste0(round(exceptions_data$Percentage * 100, 1), "%")
@@ -245,10 +305,18 @@ create_final_settlement_section <- function(final_settlement) {
 
 ```{r final-settlement}
 final_data <- data.frame(
-  Person = c("', paste(final_settlement$Person, collapse = '", "'), '"),
-  Total_Paid = c(', paste(final_settlement$Total_Paid, collapse = ', '), '),
-  Total_Owed = c(', paste(final_settlement$Total_Owed, collapse = ', '), '),
-  Final_Balance = c(', paste(final_settlement$Final_Balance, collapse = ', '), ')
+  Person = c("',
+    paste(final_settlement$Person, collapse = '", "'),
+    '"),
+  Total_Paid = c(',
+    paste(final_settlement$Total_Paid, collapse = ', '),
+    '),
+  Total_Owed = c(',
+    paste(final_settlement$Total_Owed, collapse = ', '),
+    '),
+  Final_Balance = c(',
+    paste(final_settlement$Final_Balance, collapse = ', '),
+    ')
 )
 
 final_data <- final_data %>%
@@ -280,10 +348,18 @@ create_summary_by_type_section <- function(summary_by_type) {
 
 ```{r summary-by-type}
 summary_data <- data.frame(
-  Type = c("', paste(summary_by_type$Type, collapse = '", "'), '"),
-  Total_Amount = c(', paste(summary_by_type$Total_Amount, collapse = ', '), '),
-  Total_Paid = c(', paste(summary_by_type$Total_Paid, collapse = ', '), '),
-  Total_Owed = c(', paste(summary_by_type$Total_Owed, collapse = ', '), ')
+  Type = c("',
+    paste(summary_by_type$Type, collapse = '", "'),
+    '"),
+  Total_Amount = c(',
+    paste(summary_by_type$Total_Amount, collapse = ', '),
+    '),
+  Total_Paid = c(',
+    paste(summary_by_type$Total_Paid, collapse = ', '),
+    '),
+  Total_Owed = c(',
+    paste(summary_by_type$Total_Owed, collapse = ', '),
+    ')
 )
 
 summary_data <- summary_data %>%
@@ -313,11 +389,21 @@ create_expense_details_section <- function(expenses) {
 
 ```{r expense-details}
 expense_data <- data.frame(
-  Date = as.Date(c("', paste(expenses$Date, collapse = '", "'), '")),
-  Type = c("', paste(expenses$Type, collapse = '", "'), '"),
-  Person = c("', paste(expenses$Person, collapse = '", "'), '"),
-  Reason = c("', paste(gsub('"', '\\\\\\"', expenses$Reason), collapse = '", "'), '"),
-  Amount = c(', paste(expenses$Amount, collapse = ', '), ')
+  Date = as.Date(c("',
+    paste(expenses$Date, collapse = '", "'),
+    '")),
+  Type = c("',
+    paste(expenses$Type, collapse = '", "'),
+    '"),
+  Person = c("',
+    paste(expenses$Person, collapse = '", "'),
+    '"),
+  Reason = c("',
+    paste(gsub('"', '\\\\\\"', expenses$Reason), collapse = '", "'),
+    '"),
+  Amount = c(',
+    paste(expenses$Amount, collapse = ', '),
+    ')
 )
 
 expense_data <- expense_data %>%
@@ -347,11 +433,21 @@ create_detailed_calculations_section <- function(detailed_calculations) {
 
 ```{r detailed-calculations}
 detailed_data <- data.frame(
-  Person = c("', paste(detailed_calculations$Person, collapse = '", "'), '"),
-  Type = c("', paste(detailed_calculations$Type, collapse = '", "'), '"),
-  Total_Paid = c(', paste(detailed_calculations$Total_Paid, collapse = ', '), '),
-  Share_Owed = c(', paste(detailed_calculations$Share_Owed, collapse = ', '), '),
-  Balance = c(', paste(detailed_calculations$Balance, collapse = ', '), ')
+  Person = c("',
+    paste(detailed_calculations$Person, collapse = '", "'),
+    '"),
+  Type = c("',
+    paste(detailed_calculations$Type, collapse = '", "'),
+    '"),
+  Total_Paid = c(',
+    paste(detailed_calculations$Total_Paid, collapse = ', '),
+    '),
+  Share_Owed = c(',
+    paste(detailed_calculations$Share_Owed, collapse = ', '),
+    '),
+  Balance = c(',
+    paste(detailed_calculations$Balance, collapse = ', '),
+    ')
 )
 
 detailed_data <- detailed_data %>%

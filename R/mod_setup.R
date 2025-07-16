@@ -6,20 +6,20 @@
 #' @export
 mod_setup_ui <- function(id) {
   ns <- shiny::NS(id)
-  
+
   shiny::div(
     class = "container-fluid",
     style = "max-width: 1200px; margin: 0 auto; padding: 20px;",
-    
+
     shiny::h2("House Expense Calculator", class = "text-center mb-4"),
-    
+
     shiny::fluidRow(
       shiny::column(
         6,
         mod_data_upload_ui(ns("data_upload")),
-        
+
         shiny::br(),
-        
+
         shiny::div(
           class = "card",
           shiny::div(
@@ -41,9 +41,9 @@ mod_setup_ui <- function(id) {
               shiny::column(
                 6,
                 shiny::dateInput(
-                  ns("end_date"), 
-                  "End Date", 
-                  value = Sys.Date(), 
+                  ns("end_date"),
+                  "End Date",
+                  value = Sys.Date(),
                   format = "dd M yyyy"
                 )
               )
@@ -51,7 +51,7 @@ mod_setup_ui <- function(id) {
           )
         )
       ),
-      
+
       shiny::column(
         6,
         shiny::div(
@@ -84,21 +84,21 @@ mod_setup_ui <- function(id) {
         )
       )
     ),
-    
+
     shiny::br(),
-    
+
     shiny::div(
       class = "text-center",
       shiny::actionButton(
-        ns("calculate"), 
-        "🧮 Calculate Expenses", 
+        ns("calculate"),
+        "🧮 Calculate Expenses",
         class = "btn-primary btn-lg",
         style = "padding: 15px 30px; font-size: 18px;"
       )
     ),
-    
+
     shiny::br(),
-    
+
     # Instructions/Help section
     mod_instructions_ui(ns("instructions"))
   )
@@ -112,25 +112,32 @@ mod_setup_ui <- function(id) {
 #' @export
 mod_setup_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
-    
     # Data upload module
     upload_data <- mod_data_upload_server("data_upload")
-    
+
     # Instructions module
     mod_instructions_server("instructions")
-    
+
     # Update date inputs when data is loaded
     shiny::observe({
       if (!is.null(upload_data$date_range)) {
-        shiny::updateDateInput(session, "start_date", value = upload_data$date_range$start)
-        shiny::updateDateInput(session, "end_date", value = upload_data$date_range$end)
+        shiny::updateDateInput(
+          session,
+          "start_date",
+          value = upload_data$date_range$start
+        )
+        shiny::updateDateInput(
+          session,
+          "end_date",
+          value = upload_data$date_range$end
+        )
       }
     })
-    
+
     # Main calculation
     calculations <- shiny::eventReactive(input$calculate, {
       shiny::req(upload_data$expenses_data)
-      
+
       result <- process_expenses(
         expenses_data = upload_data$expenses_data,
         start_date = input$start_date,
@@ -141,7 +148,7 @@ mod_setup_server <- function(id) {
         absences_data = upload_data$absences_data,
         exceptions_data = upload_data$exceptions_data
       )
-      
+
       # Handle errors
       if (!is.null(result$errors)) {
         shiny::showNotification(
@@ -154,7 +161,7 @@ mod_setup_server <- function(id) {
         )
         return(NULL)
       }
-      
+
       # Show warnings
       if (!is.null(result$warnings) && length(result$warnings) > 0) {
         shiny::showNotification(
@@ -166,10 +173,10 @@ mod_setup_server <- function(id) {
           duration = 8
         )
       }
-      
+
       return(result)
     })
-    
+
     return(list(
       calculations = calculations,
       start_date = shiny::reactive(input$start_date),

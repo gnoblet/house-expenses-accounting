@@ -1,4 +1,3 @@
-Normal
-Party
-Alcohol
-Special
+normal
+a_discuter
+alcool

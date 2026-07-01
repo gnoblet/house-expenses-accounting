@@ -21,7 +21,6 @@ Imports:
     kableExtra,
     knitr,
     lubridate,
-    magrittr,
     readr,
     rlang,
     rmarkdown,

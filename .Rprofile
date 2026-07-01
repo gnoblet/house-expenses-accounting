@@ -1,3 +1,4 @@
+source("renv/activate.R")
 if (nzchar(Sys.which("rv"))) {
   source("rv/scripts/rvr.R")
   source("rv/scripts/activate.R")

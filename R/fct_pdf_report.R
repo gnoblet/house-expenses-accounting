@@ -247,7 +247,7 @@ absences_data <- data.frame(
 
 kable(absences_data, 
       col.names = c("Person", "Absent Days"),
-      caption = "Absence Summary") %>%
+      caption = "Absence Summary") |> 
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 latex_options = c("hold_position"))
 ```'
@@ -284,7 +284,7 @@ exceptions_data$Percentage_Text <- paste0(round(exceptions_data$Percentage * 100
 
 kable(exceptions_data[,c("Person", "ExpenseType", "Percentage_Text")],
       col.names = c("Person", "Expense Type", "Participation %"),
-      caption = "Expense Participation Exceptions") %>%
+      caption = "Expense Participation Exceptions") |>
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 latex_options = c("hold_position"))
 ```'
@@ -319,8 +319,8 @@ final_data <- data.frame(
     ')
 )
 
-final_data <- final_data %>%
-  arrange(desc(Final_Balance)) %>%
+final_data <- final_data |>
+  arrange(desc(Final_Balance)) |>
   mutate(
     Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
     Total_Owed_Text = paste0("CHF ", sprintf("%.2f", Total_Owed)),
@@ -329,9 +329,9 @@ final_data <- final_data %>%
 
 kable(final_data[,c("Person", "Total_Paid_Text", "Total_Owed_Text", "Final_Balance_Text")], 
       col.names = c("Person", "Total Paid", "Total Owed", "Final Balance"),
-      caption = "Final Settlement - Who Owes What") %>%
+      caption = "Final Settlement - Who Owes What") |>
   kable_styling(bootstrap_options = c("striped", "hover"), 
-                latex_options = c("hold_position")) %>%
+                latex_options = c("hold_position")) |>
   column_spec(4, color = ifelse(final_data$Final_Balance >= 0, "softgreen", "softred"), bold = TRUE)
 ```'
   )
@@ -362,7 +362,7 @@ summary_data <- data.frame(
     ')
 )
 
-summary_data <- summary_data %>%
+summary_data <- summary_data |>
   mutate(
     Total_Amount_Text = paste0("CHF ", sprintf("%.2f", Total_Amount)),
     Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
@@ -371,7 +371,7 @@ summary_data <- summary_data %>%
 
 kable(summary_data[,c("ExpenseType", "Total_Amount_Text", "Total_Paid_Text", "Total_Owed_Text")],
       col.names = c("Expense Type", "Total Amount", "Total Paid", "Total Owed"),
-      caption = "Summary by Expense Type") %>%
+      caption = "Summary by Expense Type") |>
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 latex_options = c("hold_position"))
 ```'
@@ -406,8 +406,8 @@ expense_data <- data.frame(
     ')
 )
 
-expense_data <- expense_data %>%
-  arrange(desc(Date)) %>%
+expense_data <- expense_data |>
+  arrange(desc(Date)) |>
   mutate(
     Date_Text = format(Date, "%Y-%m-%d"),
     Amount_Text = paste0("CHF ", sprintf("%.2f", Amount))
@@ -415,7 +415,7 @@ expense_data <- expense_data %>%
 
 kable(expense_data[,c("Date_Text", "ExpenseType", "Person", "Reason", "Amount_Text")],
       col.names = c("Date", "Expense Type", "Person", "Reason", "Amount"),
-      caption = "All Expense Details") %>%
+      caption = "All Expense Details") |>
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 latex_options = c("hold_position", "scale_down"))
 ```'
@@ -450,9 +450,9 @@ detailed_data <- data.frame(
     ')
 )
 
-detailed_data <- detailed_data %>%
-  filter(Total_Paid > 0 | Share_Owed > 0) %>%
-  arrange(ExpenseType, desc(Balance)) %>%
+detailed_data <- detailed_data |>
+  filter(Total_Paid > 0 | Share_Owed > 0) |>
+  arrange(ExpenseType, desc(Balance)) |>
   mutate(
     Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
     Share_Owed_Text = paste0("CHF ", sprintf("%.2f", Share_Owed)),
@@ -461,9 +461,9 @@ detailed_data <- detailed_data %>%
 
 kable(detailed_data[,c("Person", "ExpenseType", "Total_Paid_Text", "Share_Owed_Text", "Balance_Text")],
       col.names = c("Person", "Expense Type", "Paid", "Owed", "Balance"),
-      caption = "Detailed Calculations by Person and Type") %>%
+      caption = "Detailed Calculations by Person and Type") |>
   kable_styling(bootstrap_options = c("striped", "hover"), 
-                latex_options = c("hold_position", "scale_down")) %>%
+                latex_options = c("hold_position", "scale_down")) |>
   column_spec(5, color = ifelse(detailed_data$Balance >= 0, "softgreen", "softred"), bold = TRUE)
 ```'
   )

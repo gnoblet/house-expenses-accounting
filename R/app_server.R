@@ -4,7 +4,6 @@
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @importFrom shiny observe observeEvent req showNotification withProgress incProgress reactive reactiveValues updateNavbarPage
-#' @importFrom magrittr %>%
 #' @noRd
 app_server <- function(input, output, session) {
   # Initialize reactive values for shared state

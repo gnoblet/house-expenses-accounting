@@ -81,7 +81,6 @@ dependencies = [
     { name = "lazyeval", repository = "CRAN" },
     { name = "lifecycle", repository = "CRAN" },
     { name = "lubridate", repository = "CRAN" },
-    { name = "magrittr", repository = "CRAN" },
     { name = "memoise", repository = "CRAN" },
     { name = "mime", repository = "CRAN" },
     { name = "miniUI", repository = "CRAN" },

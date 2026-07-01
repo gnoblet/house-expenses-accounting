@@ -9,7 +9,7 @@ utils::globalVariables(c(
   "Count"
 ))
 
-#' @importFrom magrittr %>%
+#' @importFrom magrittr |>
 NULL
 
 #' Long Term Analysis Module UI
@@ -148,33 +148,33 @@ mod_long_term_server <- function(id, expenses_data) {
 
       # Group by period and analysis type
       if (input$analysis_type == "type") {
-        grouped_data <- df %>%
-          dplyr::group_by(Period, ExpenseType) %>%
+        grouped_data <- df |>
+          dplyr::group_by(Period, ExpenseType) |>
           dplyr::summarise(
             Total_Amount = sum(Amount, na.rm = TRUE),
             Count = dplyr::n(),
             .groups = "drop"
-          ) %>%
+          ) |>
           dplyr::arrange(Period, ExpenseType)
       } else if (input$analysis_type == "person") {
-        grouped_data <- df %>%
-          dplyr::group_by(Period, Person) %>%
+        grouped_data <- df |>
+          dplyr::group_by(Period, Person) |>
           dplyr::summarise(
             Total_Amount = sum(Amount, na.rm = TRUE),
             Count = dplyr::n(),
             .groups = "drop"
-          ) %>%
+          ) |>
           dplyr::arrange(Period, Person)
       } else {
         # total
-        grouped_data <- df %>%
-          dplyr::group_by(Period) %>%
+        grouped_data <- df |>
+          dplyr::group_by(Period) |>
           dplyr::summarise(
             Total_Amount = sum(Amount, na.rm = TRUE),
             Count = dplyr::n(),
             .groups = "drop"
-          ) %>%
-          dplyr::arrange(Period) %>%
+          ) |>
+          dplyr::arrange(Period) |>
           dplyr::mutate(Category = "Total Expenses")
       }
 
@@ -277,19 +277,19 @@ mod_long_term_server <- function(id, expenses_data) {
 
       # Format the data for display
       if (input$analysis_type == "total") {
-        display_data <- data %>%
+        display_data <- data |>
           dplyr::mutate(
             Amount = paste("CHF", sprintf("%.2f", Total_Amount)),
             Transactions = Count
-          ) %>%
+          ) |>
           dplyr::select(Period, Amount, Transactions)
       } else {
         category_col <- if (input$analysis_type == "type") "Type" else "Person"
-        display_data <- data %>%
+        display_data <- data |>
           dplyr::mutate(
             Amount = paste("CHF", sprintf("%.2f", Total_Amount)),
             Transactions = Count
-          ) %>%
+          ) |>
           dplyr::select(
             Period,
             !!rlang::sym(category_col),

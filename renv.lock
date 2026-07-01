@@ -244,7 +244,8 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>)",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_5"
     },
     "attachment": {
       "Package": "attachment",
@@ -618,7 +619,7 @@
       "NeedsCompilation": "no",
       "Author": "Jennifer Bryan [cre, aut], Hadley Wickham [ctb]",
       "Maintainer": "Jennifer Bryan <jenny@stat.ubc.ca>",
-      "Repository": "https://p3m.dev/cran/latest",
+      "Repository": "RSPM",
       "Encoding": "UTF-8"
     },
     "cli": {
@@ -949,7 +950,8 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>), Hadley Wickham [ctb], Posit Software, PBC [cph]",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_27"
     },
     "data.table": {
       "Package": "data.table",
@@ -1945,47 +1947,6 @@
       "Maintainer": "Kirill Müller <kirill@cynkra.com>",
       "Repository": "RSPM"
     },
-    "houseexpenses": {
-      "Package": "houseexpenses",
-      "Version": "0.0.0.9000",
-      "Source": "unknown",
-      "Title": "House Expense Calculator",
-      "Authors@R": "person(given = \"gnoblet\", role = c(\"aut\", \"cre\"), email = \"gnoblet@zaclys.net\")",
-      "Description": "A Shiny application for calculating and managing house expenses  with support for absences, exceptions, and long-term analysis.",
-      "License": "MIT + file LICENSE",
-      "Imports": [
-        "bslib",
-        "config (>= 0.3.1)",
-        "DT",
-        "dplyr",
-        "ggiraph",
-        "ggplot2",
-        "glue",
-        "golem (>= 0.3.5)",
-        "htmltools",
-        "kableExtra",
-        "knitr",
-        "lubridate",
-        "magrittr",
-        "readr",
-        "rlang",
-        "rmarkdown",
-        "scales",
-        "shiny (>= 1.7.2)",
-        "stringr",
-        "tidyr",
-        "viridis"
-      ],
-      "Suggests": [
-        "testthat (>= 3.0.0)"
-      ],
-      "Config/testthat/edition": "3",
-      "Encoding": "UTF-8",
-      "LazyData": "true",
-      "RoxygenNote": "7.3.2",
-      "Author": "gnoblet [aut, cre]",
-      "Maintainer": "gnoblet <gnoblet@zaclys.net>"
-    },
     "htmltools": {
       "Package": "htmltools",
       "Version": "0.5.9",
@@ -2146,7 +2107,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "https://packagemanager.posit.co/cran/latest"
+      "Repository": "RSPM"
     },
     "httr2": {
       "Package": "httr2",
@@ -2207,7 +2168,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut, cre], Posit Software, PBC [cph, fnd], Maximilian Girlich [ctb]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM"
     },
     "ini": {
       "Package": "ini",
@@ -2789,7 +2750,8 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (ORCID: <https://orcid.org/0000-0002-4035-0289>), Oliver Keyes [ctb]",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_17"
     },
     "otel": {
       "Package": "otel",
@@ -2919,7 +2881,8 @@
       "NeedsCompilation": "yes",
       "Author": "Gábor Csárdi [aut, cre], Jim Hester [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>), Winston Chang [ctb] (R6, callr, processx), Ascent Digital Services [cph, fnd] (callr, processx), Hadley Wickham [ctb, cph] (cli, curl, pkgbuild, yaml), Jeroen Ooms [ctb] (curl, jsonlite), Maëlle Salmon [ctb] (desc, pkgsearch), Duncan Temple Lang [ctb] (jsonlite), Lloyd Hilaiel [cph] (jsonlite), Alec Wong [ctb] (keyring), Michel Berkelaar and lpSolve authors [ctb] (lpSolve), R Consortium [fnd] (pkgsearch), Jay Loden [ctb] (ps), Dave Daeschler [ctb] (ps), Giampaolo Rodola [ctb] (ps), Shawn Garbett [ctb] (yaml), Jeremy Stephens [ctb] (yaml), Kirill Simonov [ctb] (yaml), Yihui Xie [ctb] (yaml), Zhuoer Dong [ctb] (yaml), Jeffrey Horner [ctb] (yaml), Will Beasley [ctb] (yaml), Brendan O'Connor [ctb] (yaml), Gregory Warnes [ctb] (yaml), Michael Quinn [ctb] (yaml), Zhian Kamvar [ctb] (yaml), Charlie Gao [ctb] (yaml), Kuba Podgórski [ctb] (zip), Rich Geldreich [ctb] (zip)",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
-      "Repository": "https://r-lib.github.io/p/pak/stable/source/linux-gnu/x86_64"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_27"
     },
     "pillar": {
       "Package": "pillar",
@@ -3566,7 +3529,8 @@
       "SystemRequirements": "freetype2, libpng, libtiff, libjpeg, libwebp, libwebpmux",
       "NeedsCompilation": "yes",
       "Author": "Thomas Lin Pedersen [cre, aut] (ORCID: <https://orcid.org/0000-0002-5147-4711>), Maxim Shemanarev [aut, cph] (Author of AGG), Tony Juricic [ctb, cph] (Contributor to AGG), Milan Marusinec [ctb, cph] (Contributor to AGG), Spencer Garrett [ctb] (Contributor to AGG), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_27"
     },
     "rappdirs": {
       "Package": "rappdirs",
@@ -3742,7 +3706,8 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Jennifer Bryan [aut, cre] (ORCID: <https://orcid.org/0000-0002-6983-2759>), Posit, PBC [cph, fnd] (Copyright holder of all R code and all C/C++ code without explicit copyright attribution), Marcin Kalicinski [ctb, cph] (Author of included RapidXML code), Komarov Valery [ctb, cph] (Author of included libxls code), Christophe Leitienne [ctb, cph] (Author of included libxls code), Bob Colbert [ctb, cph] (Author of included libxls code), David Hoerl [ctb, cph] (Author of included libxls code), Evan Miller [ctb, cph] (Author of included libxls code)",
       "Maintainer": "Jennifer Bryan <jenny@posit.co>",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_24"
     },
     "rematch": {
       "Package": "rematch",
@@ -3762,7 +3727,7 @@
       ],
       "Encoding": "UTF-8",
       "NeedsCompilation": "no",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM"
     },
     "renv": {
       "Package": "renv",
@@ -3817,7 +3782,7 @@
       "NeedsCompilation": "no",
       "Author": "Kevin Ushey [aut, cre] (ORCID: <https://orcid.org/0000-0003-2880-7407>), Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
-      "Repository": "https://p3m.dev/cran/latest",
+      "Repository": "RSPM",
       "Platform": "x86_64-pc-linux-gnu-manylinux_2_5"
     },
     "rhub": {
@@ -4579,7 +4544,8 @@
       "NeedsCompilation": "yes",
       "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>), Gábor Csárdi [ctb]",
       "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
-      "Repository": "https://p3m.dev/cran/latest"
+      "Repository": "RSPM",
+      "Platform": "x86_64-pc-linux-gnu-manylinux_2_17"
     },
     "systemfonts": {
       "Package": "systemfonts",

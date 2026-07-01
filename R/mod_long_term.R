@@ -2,7 +2,7 @@
 utils::globalVariables(c(
   "Amount",
   "Date",
-  "Type",
+  "ExpenseType",
   "Person",
   "Period",
   "Total_Amount",
@@ -135,7 +135,7 @@ mod_long_term_server <- function(id, expenses_data) {
 
       # Filter by shared expenses if requested
       if (!input$include_shared) {
-        df <- df[df$Type != "Shared", ]
+        df <- df[df$ExpenseType != "Shared", ]
       }
 
       # Add period grouping
@@ -149,13 +149,13 @@ mod_long_term_server <- function(id, expenses_data) {
       # Group by period and analysis type
       if (input$analysis_type == "type") {
         grouped_data <- df %>%
-          dplyr::group_by(Period, Type) %>%
+          dplyr::group_by(Period, ExpenseType) %>%
           dplyr::summarise(
             Total_Amount = sum(Amount, na.rm = TRUE),
             Count = dplyr::n(),
             .groups = "drop"
           ) %>%
-          dplyr::arrange(Period, Type)
+          dplyr::arrange(Period, ExpenseType)
       } else if (input$analysis_type == "person") {
         grouped_data <- df %>%
           dplyr::group_by(Period, Person) %>%
@@ -214,7 +214,7 @@ mod_long_term_server <- function(id, expenses_data) {
             y = "Amount (CHF)"
           )
       } else {
-        color_var <- if (input$analysis_type == "type") "Type" else "Person"
+        color_var <- if (input$analysis_type == "type") "ExpenseType" else "Person"
 
         p <- ggplot2::ggplot(
           data,

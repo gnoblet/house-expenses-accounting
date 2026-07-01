@@ -165,7 +165,7 @@ mod_results_server <- function(
     shiny::observe({
       shiny::req(calculations())
       if (!is.null(calculations())) {
-        expense_types <- unique(calculations()$detailed_calculations$Type)
+        expense_types <- unique(calculations()$detailed_calculations$ExpenseType)
         expense_types <- expense_types[!is.na(expense_types)]
         shiny::updateSelectInput(
           session,
@@ -188,10 +188,10 @@ mod_results_server <- function(
 
       # Filter detailed calculations for selected type
       filtered_data <- calculations()$detailed_calculations |>
-        dplyr::filter(Type == input$filter_type) |>
+        dplyr::filter(ExpenseType == input$filter_type) |>
         dplyr::select(
           Person,
-          Type,
+          ExpenseType,
           Total_Amount,
           Total_Paid,
           Share_Owed,
@@ -226,7 +226,7 @@ mod_results_server <- function(
 
       # Get summary for selected type
       filtered_data <- calculations()$detailed_calculations |>
-        dplyr::filter(Type == input$filter_type)
+        dplyr::filter(ExpenseType == input$filter_type)
 
       total_amount <- dplyr::first(filtered_data$Total_Amount)
       total_paid <- sum(filtered_data$Total_Paid)
@@ -292,7 +292,7 @@ mod_results_server <- function(
 utils::globalVariables(c(
   "Date",
   "Final_Balance",
-  "Type",
+  "ExpenseType",
   "Person",
   "Total_Amount",
   "Total_Paid",

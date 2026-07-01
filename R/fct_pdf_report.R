@@ -272,8 +272,8 @@ exceptions_data <- data.frame(
   Person = c("',
       paste(exceptions_summary$Person, collapse = '", "'),
       '"),
-  Type = c("',
-      paste(exceptions_summary$Type, collapse = '", "'),
+  ExpenseType = c("',
+      paste(exceptions_summary$ExpenseType, collapse = '", "'),
       '"),
   Percentage = c(',
       paste(exceptions_summary$Percentage, collapse = ', '),
@@ -282,7 +282,7 @@ exceptions_data <- data.frame(
 
 exceptions_data$Percentage_Text <- paste0(round(exceptions_data$Percentage * 100, 1), "%")
 
-kable(exceptions_data[,c("Person", "Type", "Percentage_Text")], 
+kable(exceptions_data[,c("Person", "ExpenseType", "Percentage_Text")],
       col.names = c("Person", "Expense Type", "Participation %"),
       caption = "Expense Participation Exceptions") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
@@ -348,8 +348,8 @@ create_summary_by_type_section <- function(summary_by_type) {
 
 ```{r summary-by-type}
 summary_data <- data.frame(
-  Type = c("',
-    paste(summary_by_type$Type, collapse = '", "'),
+  ExpenseType = c("',
+    paste(summary_by_type$ExpenseType, collapse = '", "'),
     '"),
   Total_Amount = c(',
     paste(summary_by_type$Total_Amount, collapse = ', '),
@@ -369,7 +369,7 @@ summary_data <- summary_data %>%
     Total_Owed_Text = paste0("CHF ", sprintf("%.2f", Total_Owed))
   )
 
-kable(summary_data[,c("Type", "Total_Amount_Text", "Total_Paid_Text", "Total_Owed_Text")], 
+kable(summary_data[,c("ExpenseType", "Total_Amount_Text", "Total_Paid_Text", "Total_Owed_Text")],
       col.names = c("Expense Type", "Total Amount", "Total Paid", "Total Owed"),
       caption = "Summary by Expense Type") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
@@ -392,8 +392,8 @@ expense_data <- data.frame(
   Date = as.Date(c("',
     paste(expenses$Date, collapse = '", "'),
     '")),
-  Type = c("',
-    paste(expenses$Type, collapse = '", "'),
+  ExpenseType = c("',
+    paste(expenses$ExpenseType, collapse = '", "'),
     '"),
   Person = c("',
     paste(expenses$Person, collapse = '", "'),
@@ -413,8 +413,8 @@ expense_data <- expense_data %>%
     Amount_Text = paste0("CHF ", sprintf("%.2f", Amount))
   )
 
-kable(expense_data[,c("Date_Text", "Type", "Person", "Reason", "Amount_Text")], 
-      col.names = c("Date", "Type", "Person", "Reason", "Amount"),
+kable(expense_data[,c("Date_Text", "ExpenseType", "Person", "Reason", "Amount_Text")],
+      col.names = c("Date", "Expense Type", "Person", "Reason", "Amount"),
       caption = "All Expense Details") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 latex_options = c("hold_position", "scale_down"))
@@ -436,8 +436,8 @@ detailed_data <- data.frame(
   Person = c("',
     paste(detailed_calculations$Person, collapse = '", "'),
     '"),
-  Type = c("',
-    paste(detailed_calculations$Type, collapse = '", "'),
+  ExpenseType = c("',
+    paste(detailed_calculations$ExpenseType, collapse = '", "'),
     '"),
   Total_Paid = c(',
     paste(detailed_calculations$Total_Paid, collapse = ', '),
@@ -452,15 +452,15 @@ detailed_data <- data.frame(
 
 detailed_data <- detailed_data %>%
   filter(Total_Paid > 0 | Share_Owed > 0) %>%
-  arrange(Type, desc(Balance)) %>%
+  arrange(ExpenseType, desc(Balance)) %>%
   mutate(
     Total_Paid_Text = paste0("CHF ", sprintf("%.2f", Total_Paid)),
     Share_Owed_Text = paste0("CHF ", sprintf("%.2f", Share_Owed)),
     Balance_Text = paste0("CHF ", sprintf("%.2f", Balance))
   )
 
-kable(detailed_data[,c("Person", "Type", "Total_Paid_Text", "Share_Owed_Text", "Balance_Text")], 
-      col.names = c("Person", "Type", "Paid", "Owed", "Balance"),
+kable(detailed_data[,c("Person", "ExpenseType", "Total_Paid_Text", "Share_Owed_Text", "Balance_Text")],
+      col.names = c("Person", "Expense Type", "Paid", "Owed", "Balance"),
       caption = "Detailed Calculations by Person and Type") %>%
   kable_styling(bootstrap_options = c("striped", "hover"), 
                 latex_options = c("hold_position", "scale_down")) %>%

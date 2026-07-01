@@ -72,7 +72,7 @@ validate_input_data <- function(df, required_cols) {
 #' @export
 check_expenses_input <- function(df) {
   required <- list(
-    Type = "character",
+    ExpenseType = "character",
     Reason = "character",
     Date = "character",
     Amount = "numeric",
@@ -103,7 +103,7 @@ check_expenses_input <- function(df) {
 check_exceptions_input <- function(df) {
   required <- list(
     Person = "character",
-    Type = "character",
+    ExpenseType = "character",
     Percentage = "numeric"
   )
   validate_input_data(df, required)

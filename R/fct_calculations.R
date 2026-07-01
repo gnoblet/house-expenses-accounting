@@ -79,16 +79,16 @@ process_expenses <- function(
 
   # Calculate expenses by type and person
   expense_summary <- expenses |>
-    dplyr::group_by(Type, Person) |>
+    dplyr::group_by(ExpenseType, Person) |>
     dplyr::summarise(
       Total_Paid = sum(Amount, na.rm = TRUE),
       .groups = "drop"
     ) |>
-    tidyr::complete(Type, Person = people, fill = list(Total_Paid = 0))
+    tidyr::complete(ExpenseType, Person = people, fill = list(Total_Paid = 0))
 
   # Calculate total by expense type
   type_totals <- expenses |>
-    dplyr::group_by(Type) |>
+    dplyr::group_by(ExpenseType) |>
     dplyr::summarise(Total_Amount = sum(Amount, na.rm = TRUE), .groups = "drop")
 
   # Calculate final calculations
@@ -104,7 +104,7 @@ process_expenses <- function(
 
   # Create summary by type
   summary_by_type <- final_calculations |>
-    dplyr::group_by(Type) |>
+    dplyr::group_by(ExpenseType) |>
     dplyr::summarise(
       Total_Amount = dplyr::first(Total_Amount),
       Total_Paid = sum(Total_Paid),
@@ -188,7 +188,7 @@ validate_data <- function(
   }
 
   # Check expense types
-  unique_types_in_expenses <- unique(expenses$Type)
+  unique_types_in_expenses <- unique(expenses$ExpenseType)
   types_not_in_list <- setdiff(unique_types_in_expenses, all_expense_types)
 
   if (length(types_not_in_list) > 0) {
@@ -236,7 +236,7 @@ validate_data <- function(
       people
     )
     exceptions_types_not_in_list <- setdiff(
-      unique(exceptions_data$Type),
+      unique(exceptions_data$ExpenseType),
       all_expense_types
     )
 
@@ -304,7 +304,7 @@ process_exceptions <- function(exceptions_data) {
   if (is.null(exceptions_data) || nrow(exceptions_data) == 0) {
     return(data.frame(
       Person = character(0),
-      Type = character(0),
+      ExpenseType = character(0),
       Percentage = numeric(0),
       stringsAsFactors = FALSE
     ))
@@ -333,12 +333,12 @@ calculate_final_settlement <- function(
   exceptions
 ) {
   final_calculations <- tidyr::expand_grid(
-    Type = all_expense_types,
+    ExpenseType = all_expense_types,
     Person = people
   ) |>
-    dplyr::left_join(type_totals, by = "Type") |>
+    dplyr::left_join(type_totals, by = "ExpenseType") |>
     dplyr::left_join(presence_ratios, by = c("Person" = "Person")) |>
-    dplyr::left_join(expense_summary, by = c("Type", "Person" = "Person")) |>
+    dplyr::left_join(expense_summary, by = c("ExpenseType", "Person" = "Person")) |>
     dplyr::mutate(
       Total_Amount = ifelse(is.na(Total_Amount), 0, Total_Amount),
       Total_Paid = ifelse(is.na(Total_Paid), 0, Total_Paid),
@@ -347,17 +347,17 @@ calculate_final_settlement <- function(
 
   # Calculate weighted shares
   final_calculations <- final_calculations |>
-    dplyr::group_by(Type) |>
+    dplyr::group_by(ExpenseType) |>
     dplyr::mutate(
-      Is_Shared_Type = Type %in% shared_expense_types,
-      Exception_Key = paste(Person, Type, sep = "-"),
+      Is_Shared_Type = ExpenseType %in% shared_expense_types,
+      Exception_Key = paste(Person, ExpenseType, sep = "-"),
       Exception_Percentage = dplyr::case_when(
         Is_Shared_Type ~ 1.0,
         Exception_Key %in%
-          paste(exceptions$Person, exceptions$Type, sep = "-") ~
+          paste(exceptions$Person, exceptions$ExpenseType, sep = "-") ~
           exceptions$Percentage[match(
             Exception_Key,
-            paste(exceptions$Person, exceptions$Type, sep = "-")
+            paste(exceptions$Person, exceptions$ExpenseType, sep = "-")
           )],
         TRUE ~ 1.0
       ),
@@ -380,7 +380,7 @@ calculate_final_settlement <- function(
 utils::globalVariables(c(
   "Date",
   "Amount",
-  "Type",
+  "ExpenseType",
   "Person",
   "Absent_Days",
   "Present_Days",

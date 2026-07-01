@@ -69,8 +69,7 @@ mod_data_upload_server <- function(id) {
 
             df <- readxl::read_excel(
               filepath,
-              sheet = sheet_name,
-              show_col_types = FALSE
+              sheet = sheet_name
             )
 
             # Validate columns and types
@@ -194,7 +193,7 @@ mod_data_upload_server <- function(id) {
           tryCatch(
             {
               if ("Person" %in% available_sheets) {
-                df <- readxl::read_excel(filepath, sheet = "Person", show_col_types = FALSE)
+                df <- readxl::read_excel(filepath, sheet = "Person")
                 if ("Person" %in% names(df)) {
                   values$people_list <- as.character(df$Person)
                 }
@@ -212,7 +211,7 @@ mod_data_upload_server <- function(id) {
           tryCatch(
             {
               if ("ExpenseType" %in% available_sheets) {
-                df <- readxl::read_excel(filepath, sheet = "ExpenseType", show_col_types = FALSE)
+                df <- readxl::read_excel(filepath, sheet = "ExpenseType")
                 if ("ExpenseType" %in% names(df)) {
                   values$expense_types <- as.character(df$ExpenseType)
                 }
@@ -230,7 +229,7 @@ mod_data_upload_server <- function(id) {
           tryCatch(
             {
               if ("SharedExpenseType" %in% available_sheets) {
-                df <- readxl::read_excel(filepath, sheet = "SharedExpenseType", show_col_types = FALSE)
+                df <- readxl::read_excel(filepath, sheet = "SharedExpenseType")
                 if ("SharedExpenseType" %in% names(df)) {
                   values$shared_expense_types <- as.character(df$SharedExpenseType)
                 }

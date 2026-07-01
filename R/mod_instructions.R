@@ -17,38 +17,30 @@ mod_instructions_ui <- function(id) {
       class = "card-body",
       shiny::tags$ul(
         shiny::tags$li(
-          "Upload your expenses CSV file with columns: Type, Reason, Date, Amount, Person"
+          "Upload your xlsx file — it must include the sheets: ",
+          shiny::tags$strong("Expenses"), ", ",
+          shiny::tags$strong("Person"), ", ",
+          shiny::tags$strong("ExpenseType"), ", ",
+          shiny::tags$strong("SharedExpenseType")
         ),
         shiny::tags$li(
-          "Optionally upload absences CSV (Person, Absent_Days) and exceptions CSV (Person, Type, Percentage)"
+          "Optionally add ", shiny::tags$strong("Absences"),
+          " (Person, Absent_Days) and ", shiny::tags$strong("Exceptions"),
+          " (Person, Type, Percentage) sheets"
         ),
         shiny::tags$li(
-          "Adjust the date range if needed - it will auto-update when you upload expenses"
+          "The date range auto-updates from your Expenses sheet — adjust if needed"
         ),
-        shiny::tags$li("Modify people names and expense types as needed"),
         shiny::tags$li(
-          "Click 'Calculate Expenses' to see the results in the other tabs"
+          "Click ‘Calculate Expenses’ to see the results in the other tabs"
         )
       ),
       shiny::br(),
-      shiny::h6("📥 Download Example Files:", class = "mb-2"),
-      shiny::div(
-        class = "d-flex flex-wrap gap-2",
-        shiny::downloadButton(
-          ns("download_expenses_example"),
-          "📊 Expenses Example",
-          class = "btn-outline-secondary btn-sm"
-        ),
-        shiny::downloadButton(
-          ns("download_absences_example"),
-          "🏖️ Absences Example",
-          class = "btn-outline-secondary btn-sm"
-        ),
-        shiny::downloadButton(
-          ns("download_exceptions_example"),
-          "⚙️ Exceptions Example",
-          class = "btn-outline-secondary btn-sm"
-        )
+      shiny::h6("📥 Download Example File:", class = "mb-2"),
+      shiny::downloadButton(
+        ns("download_example_xlsx"),
+        "📊 Download Example xlsx",
+        class = "btn-outline-secondary btn-sm"
       )
     )
   )
@@ -61,87 +53,22 @@ mod_instructions_ui <- function(id) {
 #' @export
 mod_instructions_server <- function(id) {
   shiny::moduleServer(id, function(input, output, session) {
-    # Download handlers for example files
-    output$download_expenses_example <- shiny::downloadHandler(
+    output$download_example_xlsx <- shiny::downloadHandler(
       filename = function() {
-        "expenses_example.csv"
+        "input.xlsx"
       },
       content = function(file) {
         example_path <- system.file(
-          "app",
-          "www",
-          "examples",
-          "expenses_example.csv",
+          "app", "www", "examples", "input.xlsx",
           package = "houseexpenses"
         )
         if (file.exists(example_path)) {
           file.copy(example_path, file)
         } else {
-          # Create a basic example if file doesn't exist
-          example_data <- data.frame(
-            Type = c("Normal", "Party", "Normal", "Alcohol"),
-            Reason = c("Groceries", "Birthday Party", "Utilities", "Wine"),
-            Date = c("01/06/2025", "15/06/2025", "20/06/2025", "25/06/2025"),
-            Amount = c(45.50, 120.00, 85.30, 25.90),
-            Person = c("Alice", "Bob", "Charlie", "Alice")
-          )
-          utils::write.csv(example_data, file, row.names = FALSE)
+          stop("Example file not found.")
         }
       },
-      contentType = "text/csv"
-    )
-
-    output$download_absences_example <- shiny::downloadHandler(
-      filename = function() {
-        "absences_example.csv"
-      },
-      content = function(file) {
-        example_path <- system.file(
-          "app",
-          "www",
-          "examples",
-          "absences_example.csv",
-          package = "houseexpenses"
-        )
-        if (file.exists(example_path)) {
-          file.copy(example_path, file)
-        } else {
-          # Create a basic example if file doesn't exist
-          example_data <- data.frame(
-            Person = c("Alice", "Bob", "Charlie", "Diana"),
-            Absent_Days = c(0, 5, 2, 0)
-          )
-          utils::write.csv(example_data, file, row.names = FALSE)
-        }
-      },
-      contentType = "text/csv"
-    )
-
-    output$download_exceptions_example <- shiny::downloadHandler(
-      filename = function() {
-        "exceptions_example.csv"
-      },
-      content = function(file) {
-        example_path <- system.file(
-          "app",
-          "www",
-          "examples",
-          "exceptions_example.csv",
-          package = "houseexpenses"
-        )
-        if (file.exists(example_path)) {
-          file.copy(example_path, file)
-        } else {
-          # Create a basic example if file doesn't exist
-          example_data <- data.frame(
-            Person = c("Alice", "Bob"),
-            Type = c("Alcohol", "Alcohol"),
-            Percentage = c(0.5, 0.0)
-          )
-          utils::write.csv(example_data, file, row.names = FALSE)
-        }
-      },
-      contentType = "text/csv"
+      contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
   })
 }

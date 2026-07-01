@@ -16,19 +16,9 @@ mod_data_upload_ui <- function(id) {
     shiny::div(
       class = "card-body",
       shiny::fileInput(
-        ns("expenses_file"),
-        "Upload Expenses CSV",
-        accept = ".csv"
-      ),
-      shiny::fileInput(
-        ns("absences_file"),
-        "Upload Absences CSV (optional)",
-        accept = ".csv"
-      ),
-      shiny::fileInput(
-        ns("exceptions_file"),
-        "Upload Exceptions CSV (optional - percentage participation)",
-        accept = ".csv"
+        ns("xlsx_file"),
+        "Upload Your Excel File (xlsx) with Expenses, Absences, and Exceptions sheets",
+        accept = ".xlsx"
       )
     )
   )
@@ -47,71 +37,216 @@ mod_data_upload_server <- function(id) {
       expenses_data = NULL,
       absences_data = NULL,
       exceptions_data = NULL,
-      date_range = NULL
+      date_range = NULL,
+      people_list = character(0),
+      expense_types = character(0),
+      shared_expense_types = character(0)
     )
 
-    # Load expenses file
-    shiny::observeEvent(input$expenses_file, {
-      shiny::req(input$expenses_file)
+    # Process uploaded Excel file
+    shiny::observeEvent(input$xlsx_file, {
+      shiny::req(input$xlsx_file)
+
+      temp_error <- NULL
 
       tryCatch(
         {
-          # Read the CSV file
-          df <- readr::read_csv(
-            input$expenses_file$datapath,
-            show_col_types = FALSE
-          )
+          # Read the Excel file path
+          filepath <- input$xlsx_file$datapath
 
-          # Standardize column names
-          # Not needed since there is a check on column names
-          #names(df) <- c("Type", "Reason", "Date", "Amount", "Person")
+          # Get list of available sheets
+          available_sheets <- readxl::excel_sheets(filepath)
 
-          # Validate columns and types
+          # Initialize flag for overall success
+          all_loaded <- TRUE
+
+          # Helper function to load and validate a sheet
+          load_sheet <- function(sheet_name, validator_fn, assign_target) {
+            if (!(sheet_name %in% available_sheets)) {
+              message(paste("Sheet '", sheet_name, "' not found in file"))
+              return(NULL)
+            }
+
+            df <- readxl::read_excel(
+              filepath,
+              sheet = sheet_name,
+              show_col_types = FALSE
+            )
+
+            # Validate columns and types
+            validator_fn(df)
+
+            # Special processing for expenses sheet
+            if (sheet_name == "Expenses") {
+              if ("Date" %in% names(df)) {
+                df$Date <- lubridate::mdy(df$Date)
+              }
+              if ("Amount" %in% names(df)) {
+                df$Amount <- as.numeric(df$Amount)
+              }
+            }
+
+            df
+          }
+
+          # Load Expenses sheet
           tryCatch(
             {
-              check_expenses_input(df)
-
-              # Convert date column
-              df$Date <- lubridate::mdy(df$Date)
-
-              # Convert Amount to numeric
-              df$Amount <- as.numeric(df$Amount)
-
-              # Add data back
-              values$expenses_data <- df
-
-              # Update date range
-              min_date <- min(df$Date, na.rm = TRUE)
-              max_date <- max(df$Date, na.rm = TRUE)
-              values$date_range <- list(start = min_date, end = max_date)
-
-              shiny::showNotification(
-                "✅ Expenses file loaded successfully!",
-                type = "message"
+              values$expenses_data <- load_sheet(
+                "Expenses",
+                check_expenses_input,
+                "expenses_data"
               )
-              shiny::showNotification(
-                paste(
-                  "📅 Date range updated to cover all expenses:",
-                  format(min_date, "%d/%m/%Y"),
-                  "to",
-                  format(max_date, "%d/%m/%Y")
-                ),
-                type = "message",
-                duration = 5
-              )
+
+              # Calculate date range from expenses
+              if (!is.null(values$expenses_data)) {
+                min_date <- min(values$expenses_data$Date, na.rm = TRUE)
+                max_date <- max(values$expenses_data$Date, na.rm = TRUE)
+                values$date_range <- list(start = min_date, end = max_date)
+
+                shiny::showNotification(
+                  paste(
+                    "✅ Expenses loaded:",
+                    nrow(values$expenses_data),
+                    "rows"
+                  ),
+                  type = "message"
+                )
+
+                shiny::showNotification(
+                  paste0(
+                    "📅 Date range: ",
+                    format(min_date, "%d/%m/%Y"),
+                    " to ",
+                    format(max_date, "%d/%m/%Y")
+                  ),
+                  type = "message",
+                  duration = 5
+                )
+              }
             },
             error = function(e) {
               shiny::showNotification(
-                paste("❌ Validation error in expenses file:", e$message),
-                type = "error",
-                duration = 10
+                paste("❌ Error loading Expenses:", e$message),
+                type = "error"
+              )
+              all_loaded <<- FALSE
+            }
+          )
+
+          # Load Absences sheet
+          tryCatch(
+            {
+              values$absences_data <- load_sheet(
+                "Absences",
+                check_absences_input,
+                "absences_data"
+              )
+
+              if (!is.null(values$absences_data)) {
+                shiny::showNotification(
+                  paste(
+                    "✅ Absences loaded:",
+                    nrow(values$absences_data),
+                    "rows"
+                  ),
+                  type = "message"
+                )
+              }
+            },
+            error = function(e) {
+              shiny::showNotification(
+                paste("⚠️ No Absences data or error:", e$message),
+                type = "warning"
+              )
+            }
+          )
+
+          # Load Exceptions sheet
+          tryCatch(
+            {
+              values$exceptions_data <- load_sheet(
+                "Exceptions",
+                check_exceptions_input,
+                "exceptions_data"
+              )
+
+              if (!is.null(values$exceptions_data)) {
+                shiny::showNotification(
+                  paste(
+                    "✅ Exceptions loaded:",
+                    nrow(values$exceptions_data),
+                    "rows"
+                  ),
+                  type = "message"
+                )
+              }
+            },
+            error = function(e) {
+              shiny::showNotification(
+                paste("⚠️ No Exceptions data or error:", e$message),
+                type = "warning"
+              )
+            }
+          )
+
+          # Load Person sheet
+          tryCatch(
+            {
+              if ("Person" %in% available_sheets) {
+                df <- readxl::read_excel(filepath, sheet = "Person", show_col_types = FALSE)
+                if ("Person" %in% names(df)) {
+                  values$people_list <- as.character(df$Person)
+                }
+              }
+            },
+            error = function(e) {
+              shiny::showNotification(
+                paste("⚠️ No Person sheet or error:", e$message),
+                type = "warning"
+              )
+            }
+          )
+
+          # Load ExpenseType sheet
+          tryCatch(
+            {
+              if ("ExpenseType" %in% available_sheets) {
+                df <- readxl::read_excel(filepath, sheet = "ExpenseType", show_col_types = FALSE)
+                if ("ExpenseType" %in% names(df)) {
+                  values$expense_types <- as.character(df$ExpenseType)
+                }
+              }
+            },
+            error = function(e) {
+              shiny::showNotification(
+                paste("⚠️ No ExpenseType sheet or error:", e$message),
+                type = "warning"
+              )
+            }
+          )
+
+          # Load SharedExpenseType sheet
+          tryCatch(
+            {
+              if ("SharedExpenseType" %in% available_sheets) {
+                df <- readxl::read_excel(filepath, sheet = "SharedExpenseType", show_col_types = FALSE)
+                if ("SharedExpenseType" %in% names(df)) {
+                  values$shared_expense_types <- as.character(df$SharedExpenseType)
+                }
+              }
+            },
+            error = function(e) {
+              shiny::showNotification(
+                paste("⚠️ No SharedExpenseType sheet or error:", e$message),
+                type = "warning"
               )
             }
           )
         },
         error = function(e) {
           shiny::showNotification(
-            paste("❌ Error reading expenses file:", e$message),
+            paste("❌ Failed to parse Excel file:", e$message),
             type = "error",
             duration = 10
           )
@@ -119,97 +254,10 @@ mod_data_upload_server <- function(id) {
       )
     })
 
-    # Load absences file
-    shiny::observeEvent(input$absences_file, {
-      shiny::req(input$absences_file)
-
-      tryCatch(
-        {
-          df <- readr::read_csv(
-            input$absences_file$datapath,
-            show_col_types = FALSE
-          )
-          tryCatch(
-            {
-              check_absences_input(df)
-              values$absences_data <- df
-              shiny::showNotification(
-                "✅ Absences file loaded successfully!",
-                type = "message"
-              )
-            },
-            error = function(e) {
-              shiny::showNotification(
-                paste("❌ Validation error in absences file:", e$message),
-                type = "error",
-                duration = 10
-              )
-            }
-          )
-        },
-        error = function(e) {
-          shiny::showNotification(
-            paste("❌ Error reading absences file:", e$message),
-            type = "error",
-            duration = 10
-          )
-        }
-      )
+    # Optional: Load default exceptions on start
+    shiny::onSessionEnded(function() {
+      # Cleanup when session ends
     })
-
-    # Load exceptions file
-    shiny::observeEvent(input$exceptions_file, {
-      shiny::req(input$exceptions_file)
-
-      tryCatch(
-        {
-          df <- readr::read_csv(
-            input$exceptions_file$datapath,
-            show_col_types = FALSE
-          )
-          tryCatch(
-            {
-              check_exceptions_input(df)
-              values$exceptions_data <- df
-              shiny::showNotification(
-                "✅ Exceptions file loaded successfully!",
-                type = "message"
-              )
-            },
-            error = function(e) {
-              shiny::showNotification(
-                paste("❌ Validation error in exceptions file:", e$message),
-                type = "error",
-                duration = 10
-              )
-            }
-          )
-        },
-        error = function(e) {
-          shiny::showNotification(
-            paste("❌ Error reading exceptions file:", e$message),
-            type = "error",
-            duration = 10
-          )
-        }
-      )
-    })
-
-    # # Load default exceptions on start if available
-    # shiny::observe({
-    #   if (is.null(values$exceptions_data)) {
-    #     asset_path <- system.file("app", "www", "assets", "exceptions_default.csv", package = "houseexpenses")
-    #     if (file.exists(asset_path)) {
-    #       tryCatch({
-    #         df <- readr::read_csv(asset_path, show_col_types = FALSE)
-    #         values$exceptions_data <- df
-    #         message("✓ Loaded default exceptions from assets/exceptions_default.csv")
-    #       }, error = function(e) {
-    #         message("Warning: Could not load default exceptions: ", e$message)
-    #       })
-    #     }
-    #   }
-    # })
 
     return(values)
   })

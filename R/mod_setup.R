@@ -54,34 +54,7 @@ mod_setup_ui <- function(id) {
 
       shiny::column(
         6,
-        shiny::div(
-          class = "card",
-          shiny::div(
-            class = "card-header",
-            shiny::h4("👥 People & Expense Types", class = "mb-0")
-          ),
-          shiny::div(
-            class = "card-body",
-            shiny::textAreaInput(
-              ns("people_list"),
-              "People Names (one per line)",
-              value = get_default_people_list(),
-              height = "120px"
-            ),
-            shiny::textAreaInput(
-              ns("expense_types"),
-              "Expense Types (one per line)",
-              value = get_default_expense_types(),
-              height = "100px"
-            ),
-            shiny::textAreaInput(
-              ns("shared_expense_types"),
-              "Shared Expense Types - Always Split Equally (one per line)",
-              value = get_default_shared_expense_types(),
-              height = "80px"
-            )
-          )
-        )
+        shiny::uiOutput(ns("validation_summary"))
       )
     ),
 
@@ -118,6 +91,68 @@ mod_setup_server <- function(id) {
     # Instructions module
     mod_instructions_server("instructions")
 
+    # Validation summary panel
+    output$validation_summary <- shiny::renderUI({
+      if (is.null(upload_data$expenses_data)) {
+        shiny::div(
+          class = "card",
+          shiny::div(
+            class = "card-header",
+            shiny::h4("📋 Validated Configuration", class = "mb-0")
+          ),
+          shiny::div(
+            class = "card-body text-muted",
+            shiny::p("Upload an xlsx file to see validated configuration.")
+          )
+        )
+      } else {
+        make_badges <- function(items) {
+          if (length(items) == 0) return(shiny::em("none"))
+          lapply(items, function(x) {
+            shiny::span(x, class = "badge bg-secondary me-1")
+          })
+        }
+
+        absence_label <- if (is.null(upload_data$absences_data)) {
+          shiny::span("none", class = "text-muted")
+        } else {
+          shiny::span(paste(nrow(upload_data$absences_data), "rows"))
+        }
+
+        exceptions_label <- if (is.null(upload_data$exceptions_data)) {
+          shiny::span("none", class = "text-muted")
+        } else {
+          shiny::span(paste(nrow(upload_data$exceptions_data), "rows"))
+        }
+
+        shiny::div(
+          class = "card",
+          shiny::div(
+            class = "card-header",
+            shiny::h4("📋 Validated Configuration", class = "mb-0")
+          ),
+          shiny::div(
+            class = "card-body",
+            shiny::tags$dl(
+              class = "row mb-0",
+              shiny::tags$dt(class = "col-sm-4", "People"),
+              shiny::tags$dd(class = "col-sm-8", make_badges(upload_data$people_list)),
+              shiny::tags$dt(class = "col-sm-4", "Expense Types"),
+              shiny::tags$dd(class = "col-sm-8", make_badges(upload_data$expense_types)),
+              shiny::tags$dt(class = "col-sm-4", "Shared Types"),
+              shiny::tags$dd(class = "col-sm-8", make_badges(upload_data$shared_expense_types)),
+              shiny::tags$dt(class = "col-sm-4", "Expenses"),
+              shiny::tags$dd(class = "col-sm-8", paste(nrow(upload_data$expenses_data), "rows")),
+              shiny::tags$dt(class = "col-sm-4", "Absences"),
+              shiny::tags$dd(class = "col-sm-8", absence_label),
+              shiny::tags$dt(class = "col-sm-4", "Exceptions"),
+              shiny::tags$dd(class = "col-sm-8", exceptions_label)
+            )
+          )
+        )
+      }
+    })
+
     # Update date inputs when data is loaded
     shiny::observe({
       if (!is.null(upload_data$date_range)) {
@@ -142,9 +177,9 @@ mod_setup_server <- function(id) {
         expenses_data = upload_data$expenses_data,
         start_date = input$start_date,
         end_date = input$end_date,
-        people_list = input$people_list,
-        expense_types = input$expense_types,
-        shared_expense_types = input$shared_expense_types,
+        people_list = paste(upload_data$people_list, collapse = "\n"),
+        expense_types = paste(upload_data$expense_types, collapse = "\n"),
+        shared_expense_types = paste(upload_data$shared_expense_types, collapse = "\n"),
         absences_data = upload_data$absences_data,
         exceptions_data = upload_data$exceptions_data
       )

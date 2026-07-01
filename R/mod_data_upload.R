@@ -57,6 +57,26 @@ mod_data_upload_server <- function(id) {
           # Get list of available sheets
           available_sheets <- readxl::excel_sheets(filepath)
 
+          # Check required sheets before loading anything
+          required_sheets <- c("Expenses", "Person", "ExpenseType", "SharedExpenseType")
+          optional_sheets <- c("Absences", "Exceptions")
+          missing_required <- setdiff(required_sheets, available_sheets)
+
+          if (length(missing_required) > 0) {
+            shiny::showModal(shiny::modalDialog(
+              title = "❌ Missing required sheets",
+              shiny::tags$p("Your file is missing the following required sheet(s):"),
+              shiny::tags$ul(lapply(missing_required, shiny::tags$li)),
+              shiny::tags$hr(),
+              shiny::tags$p(shiny::tags$strong("Required sheets: "), paste(required_sheets, collapse = ", ")),
+              shiny::tags$p(shiny::tags$strong("Optional sheets: "), paste(optional_sheets, collapse = ", ")),
+              shiny::tags$p(shiny::tags$strong("Sheets found in your file: "), paste(available_sheets, collapse = ", ")),
+              footer = shiny::modalButton("OK"),
+              easyClose = TRUE
+            ))
+            return()
+          }
+
           # Initialize flag for overall success
           all_loaded <- TRUE
 
@@ -125,10 +145,15 @@ mod_data_upload_server <- function(id) {
               }
             },
             error = function(e) {
-              shiny::showNotification(
-                paste("❌ Error loading Expenses:", e$message),
-                type = "error"
-              )
+              shiny::showModal(shiny::modalDialog(
+                title = "❌ Error in Expenses sheet",
+                shiny::tags$pre(
+                  style = "white-space: pre-wrap; word-break: break-word;",
+                  e$message
+                ),
+                footer = shiny::modalButton("OK"),
+                easyClose = TRUE
+              ))
               all_loaded <<- FALSE
             }
           )
@@ -192,54 +217,78 @@ mod_data_upload_server <- function(id) {
           # Load Person sheet
           tryCatch(
             {
-              if ("Person" %in% available_sheets) {
-                df <- readxl::read_excel(filepath, sheet = "Person")
-                if ("Person" %in% names(df)) {
-                  values$people_list <- as.character(df$Person)
-                }
+              df <- readxl::read_excel(filepath, sheet = "Person")
+              if (!("Person" %in% names(df))) {
+                stop(paste0(
+                  "Sheet 'Person' found but column 'Person' is missing.\n",
+                  "Expected exactly one column named 'Person'.\n",
+                  "Found columns: ", paste(names(df), collapse = ", ")
+                ))
               }
+              values$people_list <- as.character(df$Person[!is.na(df$Person)])
             },
             error = function(e) {
-              shiny::showNotification(
-                paste("⚠️ No Person sheet or error:", e$message),
-                type = "warning"
-              )
+              shiny::showModal(shiny::modalDialog(
+                title = "❌ Error in Person sheet",
+                shiny::tags$pre(
+                  style = "white-space: pre-wrap; word-break: break-word;",
+                  e$message
+                ),
+                footer = shiny::modalButton("OK"),
+                easyClose = TRUE
+              ))
             }
           )
 
           # Load ExpenseType sheet
           tryCatch(
             {
-              if ("ExpenseType" %in% available_sheets) {
-                df <- readxl::read_excel(filepath, sheet = "ExpenseType")
-                if ("ExpenseType" %in% names(df)) {
-                  values$expense_types <- as.character(df$ExpenseType)
-                }
+              df <- readxl::read_excel(filepath, sheet = "ExpenseType")
+              if (!("ExpenseType" %in% names(df))) {
+                stop(paste0(
+                  "Sheet 'ExpenseType' found but column 'ExpenseType' is missing.\n",
+                  "Expected exactly one column named 'ExpenseType'.\n",
+                  "Found columns: ", paste(names(df), collapse = ", ")
+                ))
               }
+              values$expense_types <- as.character(df$ExpenseType[!is.na(df$ExpenseType)])
             },
             error = function(e) {
-              shiny::showNotification(
-                paste("⚠️ No ExpenseType sheet or error:", e$message),
-                type = "warning"
-              )
+              shiny::showModal(shiny::modalDialog(
+                title = "❌ Error in ExpenseType sheet",
+                shiny::tags$pre(
+                  style = "white-space: pre-wrap; word-break: break-word;",
+                  e$message
+                ),
+                footer = shiny::modalButton("OK"),
+                easyClose = TRUE
+              ))
             }
           )
 
           # Load SharedExpenseType sheet
           tryCatch(
             {
-              if ("SharedExpenseType" %in% available_sheets) {
-                df <- readxl::read_excel(filepath, sheet = "SharedExpenseType")
-                if ("SharedExpenseType" %in% names(df)) {
-                  values$shared_expense_types <- as.character(df$SharedExpenseType)
-                }
+              df <- readxl::read_excel(filepath, sheet = "SharedExpenseType")
+              if (!("SharedExpenseType" %in% names(df))) {
+                stop(paste0(
+                  "Sheet 'SharedExpenseType' found but column 'SharedExpenseType' is missing.\n",
+                  "Expected exactly one column named 'SharedExpenseType'.\n",
+                  "Found columns: ", paste(names(df), collapse = ", ")
+                ))
               }
+              values$shared_expense_types <- as.character(df$SharedExpenseType[!is.na(df$SharedExpenseType)])
             },
             error = function(e) {
-              shiny::showNotification(
-                paste("⚠️ No SharedExpenseType sheet or error:", e$message),
-                type = "warning"
-              )
+              shiny::showModal(shiny::modalDialog(
+                title = "❌ Error in SharedExpenseType sheet",
+                shiny::tags$pre(
+                  style = "white-space: pre-wrap; word-break: break-word;",
+                  e$message
+                ),
+                footer = shiny::modalButton("OK"),
+                easyClose = TRUE
+              ))
             }
           )
         },

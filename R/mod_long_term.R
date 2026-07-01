@@ -197,9 +197,12 @@ mod_long_term_server <- function(id, expenses_data) {
           ggplot2::geom_col(
             ggplot2::aes(
               text = paste0(
-                "Period: ", Period,
-                "\nTotal: CHF ", sprintf("%.2f", Total_Amount),
-                "\nTransactions: ", Count
+                "Period: ",
+                Period,
+                "\nTotal: CHF ",
+                sprintf("%.2f", Total_Amount),
+                "\nTransactions: ",
+                Count
               )
             ),
             fill = "#3498db",
@@ -214,7 +217,11 @@ mod_long_term_server <- function(id, expenses_data) {
             y = "Amount (CHF)"
           )
       } else {
-        color_var <- if (input$analysis_type == "type") "ExpenseType" else "Person"
+        color_var <- if (input$analysis_type == "type") {
+          "ExpenseType"
+        } else {
+          "Person"
+        }
 
         p <- ggplot2::ggplot(
           data,
@@ -227,10 +234,16 @@ mod_long_term_server <- function(id, expenses_data) {
           ggplot2::geom_col(
             ggplot2::aes(
               text = paste0(
-                "Period: ", Period,
-                "\n", color_var, ": ", !!rlang::sym(color_var),
-                "\nAmount: CHF ", sprintf("%.2f", Total_Amount),
-                "\nTransactions: ", Count
+                "Period: ",
+                Period,
+                "\n",
+                color_var,
+                ": ",
+                !!rlang::sym(color_var),
+                "\nAmount: CHF ",
+                sprintf("%.2f", Total_Amount),
+                "\nTransactions: ",
+                Count
               )
             ),
             alpha = 0.8,
@@ -284,7 +297,11 @@ mod_long_term_server <- function(id, expenses_data) {
           ) |>
           dplyr::select(Period, Amount, Transactions)
       } else {
-        category_col <- if (input$analysis_type == "type") "Type" else "Person"
+        category_col <- if (input$analysis_type == "type") {
+          "ExpenseType"
+        } else {
+          "Person"
+        }
         display_data <- data |>
           dplyr::mutate(
             Amount = paste("CHF", sprintf("%.2f", Total_Amount)),

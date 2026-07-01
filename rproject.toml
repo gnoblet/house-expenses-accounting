@@ -55,7 +55,6 @@ dependencies = [
     { name = "gdtools", repository = "CRAN" },
     { name = "generics", repository = "CRAN" },
     { name = "gert", repository = "CRAN" },
-    { name = "ggiraph", repository = "CRAN" },
     { name = "ggplot2", repository = "CRAN" },
     { name = "gh", repository = "CRAN" },
     { name = "gitcreds", repository = "CRAN" },
@@ -153,5 +152,6 @@ dependencies = [
     { name = "xopen", repository = "CRAN" },
     { name = "xtable", repository = "CRAN" },
     { name = "yaml", repository = "CRAN" },
-    { name = "zip", repository = "CRAN" }
+    { name = "zip", repository = "CRAN" },
+    "plotly",
 ]

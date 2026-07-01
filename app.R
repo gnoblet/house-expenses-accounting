@@ -1,6 +1,6 @@
 required_packages <- c(
   "golem", "shiny", "bslib", "DT", "dplyr",
-  "ggiraph", "ggplot2", "glue", "htmltools",
+  "plotly", "ggplot2", "glue", "htmltools",
   "kableExtra", "knitr", "lubridate", "magrittr",
   "readr", "readxl", "rlang", "rmarkdown",
   "scales", "stringr", "tidyr", "viridis"

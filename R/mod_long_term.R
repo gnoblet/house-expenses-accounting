@@ -92,7 +92,7 @@ mod_long_term_ui <- function(id) {
           ),
           shiny::div(
             class = "card-body",
-            ggiraph::girafeOutput(ns("long_term_chart"), height = "600px")
+            plotly::plotlyOutput(ns("long_term_chart"), height = "600px")
           )
         )
       )
@@ -182,7 +182,7 @@ mod_long_term_server <- function(id, expenses_data) {
     })
 
     # Long term chart output
-    output$long_term_chart <- ggiraph::renderGirafe({
+    output$long_term_chart <- plotly::renderPlotly({
       shiny::req(long_term_data())
 
       data <- long_term_data()
@@ -194,15 +194,12 @@ mod_long_term_server <- function(id, expenses_data) {
       # Create the plot based on analysis type
       if (input$analysis_type == "total") {
         p <- ggplot2::ggplot(data, ggplot2::aes(x = Period, y = Total_Amount)) +
-          ggiraph::geom_col_interactive(
+          ggplot2::geom_col(
             ggplot2::aes(
-              tooltip = paste0(
-                "Period: ",
-                Period,
-                "\nTotal: CHF ",
-                sprintf("%.2f", Total_Amount),
-                "\nTransactions: ",
-                Count
+              text = paste0(
+                "Period: ", Period,
+                "\nTotal: CHF ", sprintf("%.2f", Total_Amount),
+                "\nTransactions: ", Count
               )
             ),
             fill = "#3498db",
@@ -227,19 +224,13 @@ mod_long_term_server <- function(id, expenses_data) {
             fill = !!rlang::sym(color_var)
           )
         ) +
-          ggiraph::geom_col_interactive(
+          ggplot2::geom_col(
             ggplot2::aes(
-              tooltip = paste0(
-                "Period: ",
-                Period,
-                "\n",
-                color_var,
-                ": ",
-                !!rlang::sym(color_var),
-                "\nAmount: CHF ",
-                sprintf("%.2f", Total_Amount),
-                "\nTransactions: ",
-                Count
+              text = paste0(
+                "Period: ", Period,
+                "\n", color_var, ": ", !!rlang::sym(color_var),
+                "\nAmount: CHF ", sprintf("%.2f", Total_Amount),
+                "\nTransactions: ", Count
               )
             ),
             alpha = 0.8,
@@ -271,19 +262,7 @@ mod_long_term_server <- function(id, expenses_data) {
           labels = scales::label_currency(prefix = "CHF ")
         )
 
-      # Create interactive plot
-      ggiraph::girafe(
-        ggobj = p,
-        width_svg = 12,
-        height_svg = 8,
-        options = list(
-          ggiraph::opts_hover_inv(css = "opacity:0.3;"),
-          ggiraph::opts_hover(css = "stroke:black;stroke-width:2px;"),
-          ggiraph::opts_tooltip(
-            css = "background-color:white;color:black;padding:10px;border-radius:5px;box-shadow:0 0 10px rgba(0,0,0,0.5);"
-          )
-        )
-      )
+      plotly::ggplotly(p, tooltip = "text")
     })
 
     # Long term table output
